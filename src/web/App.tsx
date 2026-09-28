@@ -3,6 +3,7 @@ import type { Session } from '../contracts/session';
 import type { PreviewCase } from '../../fixtures/scenarios';
 import { PreviewApp } from './PreviewApp';
 import { ClientCases } from './ClientCases';
+import { ReviewWorkspace } from './ReviewWorkspace';
 
 async function read<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: 'no-store' });
@@ -158,6 +159,8 @@ export function App() {
     );
   if (session.role === 'client')
     return <ClientCases session={session} onLogout={logout} />;
+  if (session.role === 'manager' || session.role === 'compliance')
+    return <ReviewWorkspace session={session} onLogout={logout} />;
   return (
     <PreviewApp session={session} scenarios={scenarios} onLogout={logout} />
   );

@@ -16,6 +16,10 @@ Clients can create persistent drafts, upload only the supplied synthetic PDF fix
 
 Fixture files are in `fixtures/documents/`. Only their exact approved bytes are accepted; arbitrary or renamed PDFs are rejected. Each case is limited to 10 versions and each file to 10 MB.
 
+Phase 4 connects the manager and compliance workspaces to persisted cases. Managers complete the five-item checklist, request corrections or forward a version snapshot. Compliance can keep internal notes, publish client-visible requests, and approve or reject with a required reason. Corrected uploads invalidate earlier checklist confirmations, and final decisions preserve the reviewed document snapshot.
+
+Phase 5 adds deterministic, clearly labeled simulated analysis for the supplied fixture hashes. Staff can inspect extracted fields, page-linked findings, current/historical version status, failures and retries. Suggested correction text becomes client-visible only after an explicit compliance action; analysis never records a decision.
+
 Server roles, organization scope, CSRF protections and expiring HttpOnly cookies remain in place. HTTPS cookies are Secure. Account selection is a demo convenience, not verified identity. Only synthetic content belongs in this POC.
 
 ## Verify and deploy

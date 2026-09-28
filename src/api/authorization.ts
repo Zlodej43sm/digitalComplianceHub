@@ -75,7 +75,8 @@ export function allowedMutation(request: Request, origin: string): boolean {
     request.headers.get('Origin') === origin &&
     ['same-origin', null].includes(request.headers.get('Sec-Fetch-Site')) &&
     request.headers.get('X-CSRF-Protection') === '1' &&
-    request.headers.get('Content-Type')?.split(';')[0]?.trim() ===
-      'application/json'
+    ['application/json', 'multipart/form-data'].includes(
+      request.headers.get('Content-Type')?.split(';')[0]?.trim() ?? '',
+    )
   );
 }

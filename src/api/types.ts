@@ -31,6 +31,7 @@ export interface Bindings {
   ACCESS_AUDIENCE?: string;
   APP_ORIGIN?: string;
   DOCUMENTS?: ObjectStore;
+  ANALYSIS_QUEUE?: { send(message: unknown): Promise<void> };
 }
 export interface Identity {
   issuer: string;

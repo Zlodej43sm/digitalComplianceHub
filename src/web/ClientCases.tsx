@@ -29,7 +29,8 @@ export function ClientCases({
   }
   async function create(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const f = new FormData(form);
     const r = await fetch('/api/cases', {
       method: 'POST',
       headers,
@@ -42,7 +43,7 @@ export function ClientCases({
     });
     const j = await r.json();
     if (!r.ok) return setError(j.error);
-    e.currentTarget.reset();
+    form.reset();
     await load();
     await open(j.id);
   }
@@ -68,6 +69,20 @@ export function ClientCases({
     if (!r.ok) return setError(j.error);
     await open(selected.case.id);
     await load();
+  }
+  async function respond(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const f = new FormData(form);
+    const r = await fetch(`/api/cases/${selected.case.id}/client-response`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ body: f.get('body') }),
+    });
+    const j = await r.json();
+    if (!r.ok) return setError(j.error);
+    form.reset();
+    await open(selected.case.id);
   }
   return (
     <main className="content">
@@ -160,6 +175,20 @@ export function ClientCases({
               Submit case
             </button>
             <h3>Audit timeline</h3>
+            <h3>Messages</h3>
+            {selected.messages?.map((m: any) => (
+              <p key={m.id}>{m.body}</p>
+            ))}
+            {selected.case.status === 'AwaitingClient' && (
+              <form className="local-login" onSubmit={respond}>
+                <textarea
+                  name="body"
+                  required
+                  placeholder="Response to the bank"
+                />
+                <button className="button subtle">Add response</button>
+              </form>
+            )}
             {selected.audit.map((a: any, i: number) => (
               <p key={i}>
                 {a.action} · {a.detail}

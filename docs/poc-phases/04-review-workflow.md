@@ -1,6 +1,6 @@
 # POC Phase 4 — Manager and compliance review cycle
 
-Status: not started. Depends on: Phase 3. Estimate: 3–4 engineering days.
+Status: implemented locally; hosted migration/deployment and browser walkthrough pending. Depends on: Phase 3.
 
 Goal: complete the entire customer journey manually, including a correction and a reasoned final decision.
 

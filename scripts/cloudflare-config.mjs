@@ -55,6 +55,19 @@ export function hostedConfig(input, environment) {
         jurisdiction: 'eu',
       },
     ],
+    queues: {
+      producers: [
+        { binding: 'ANALYSIS_QUEUE', queue: `dch-${environment}-analysis` },
+      ],
+      consumers: [
+        {
+          queue: `dch-${environment}-analysis`,
+          dead_letter_queue: `dch-${environment}-analysis-failed`,
+          max_retries: 2,
+        },
+      ],
+    },
+    triggers: { crons: ['*/5 * * * *'] },
     observability: { enabled: false },
   };
 }

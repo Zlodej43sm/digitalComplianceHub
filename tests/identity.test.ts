@@ -16,6 +16,8 @@ function database() {
   const sql = new DatabaseSync(':memory:');
   sql.exec(readFileSync('migrations/0001_identity.sql', 'utf8'));
   sql.exec(readFileSync('migrations/0002_cases_documents.sql', 'utf8'));
+  sql.exec(readFileSync('migrations/0003_review_workflow.sql', 'utf8'));
+  sql.exec(readFileSync('migrations/0004_simulated_analysis.sql', 'utf8'));
   sql.exec(readFileSync('seeds/local.sql', 'utf8'));
   const DB: Database = {
     prepare(query) {

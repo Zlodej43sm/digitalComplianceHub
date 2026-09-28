@@ -1,6 +1,6 @@
 # POC Phase 5 — Simulated document analysis
 
-Status: not started. Depends on: Phase 4. Estimate: 1–2 engineering days.
+Status: implemented locally; hosted queues, migration/deployment and browser walkthrough pending. Depends on: Phase 4.
 
 Goal: demonstrate how document assistance fits the review process, while clearly identifying all extraction and summary outputs as simulated.
 
