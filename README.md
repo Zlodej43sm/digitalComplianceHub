@@ -40,7 +40,7 @@ Checks cover JWT signature/issuer/audience/expiry, unknown identities, cross-ban
 
 ## Cloudflare deployment
 
-Follow the [Phase 2 hosted runbook](docs/cloudflare-environments.md). `wrangler.jsonc` is local-only. Real dev/demo configs are generated from ignored `cloudflare.local.json`; identifiers and hostname are required rather than fabricated.
+Follow the [Phase 2 hosted runbook](docs/cloudflare-environments.md). `wrangler.jsonc` is local-only. The demo config is generated from committed `cloudflare.hosted.json`; an ignored `cloudflare.local.json` overrides it for local operator changes. These files contain resource identifiers, not credentials.
 
 ```bash
 rtk pnpm configure:cloudflare dev

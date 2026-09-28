@@ -6,7 +6,7 @@ Status: prepared, not executed. No remote resources were provisioned or deployed
 
 Authenticate interactively with `rtk pnpm exec wrangler login`, then check `rtk pnpm exec wrangler whoami`. Do not share tokens in chat or commit them. CI deployment is not configured; a future deployment credential should be scoped to the chosen account/resources and kept in the CI secret store.
 
-Provide a developer hostname on a Cloudflare-managed zone, the selected identity provider, a Cloudflare Access application, and five separate invited test identities. Copy `cloudflare.example.json` to ignored `cloudflare.local.json` and fill in the actual account ID, Access issuer, hostname, audience and D1 database ID for `dev`. Fill `demo` only when preparing the separate customer environment. These are configuration identifiers, not authentication secrets.
+Provide a developer hostname on a Cloudflare-managed zone, the selected identity provider, a Cloudflare Access application, and five separate invited test identities. Copy `cloudflare.example.json` to ignored `cloudflare.local.json` and fill in the actual account ID, Access issuer, hostname, audience and D1 database ID for `dev`. The deployed demo identifiers are committed in `cloudflare.hosted.json`, which is used when no local override exists. These are configuration identifiers, not authentication secrets.
 
 | Resource | Developer environment | Customer demo environment |
 | --- | --- | --- |

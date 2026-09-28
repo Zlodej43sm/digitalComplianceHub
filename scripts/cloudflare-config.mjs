@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 export function hostedConfig(input, environment) {
@@ -66,8 +66,11 @@ export function hostedConfig(input, environment) {
 }
 
 export function writeHostedConfig(environment) {
+  const inputPath = existsSync('cloudflare.local.json')
+    ? 'cloudflare.local.json'
+    : 'cloudflare.hosted.json';
   const config = hostedConfig(
-    JSON.parse(readFileSync('cloudflare.local.json', 'utf8')),
+    JSON.parse(readFileSync(inputPath, 'utf8')),
     environment,
   );
   const path = `wrangler.${environment}.generated.json`;
