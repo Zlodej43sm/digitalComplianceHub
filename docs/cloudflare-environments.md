@@ -11,6 +11,7 @@ The account picker creates an opaque 30-minute session. Cookies are HttpOnly, Sa
 ```bash
 rtk pnpm configure:cloudflare demo
 rtk pnpm build:cloudflare demo
+rtk pnpm deploy:cloudflare demo
 ```
 
 The generated configuration retains private EU R2 bindings and disables alternate workers.dev/preview aliases. No Access application is created by these scripts.
@@ -22,8 +23,10 @@ Authenticate with `rtk pnpm exec wrangler login` if needed. For a new demo datab
 ```bash
 rtk pnpm exec wrangler d1 migrations apply dch-demo-metadata --remote --config wrangler.demo.generated.json
 rtk pnpm exec wrangler d1 execute dch-demo-metadata --remote --config wrangler.demo.generated.json --file seeds/hosted-demo.sql
-rtk pnpm exec wrangler deploy --config dist/digital_compliance_hub_demo/wrangler.json
+rtk pnpm deploy:cloudflare demo
 ```
+
+Deploy through the generated source configuration so Wrangler registers the Worker's `queue` and `scheduled` handlers. The Vite output remains the local production preview artifact.
 
 The hosted seed uses separate demo-prefixed identity IDs and INSERT OR IGNORE, preserving any existing Access-backed users. Never apply this seed to a real-data database.
 

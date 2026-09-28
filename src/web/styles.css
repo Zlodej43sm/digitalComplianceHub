@@ -975,12 +975,13 @@ tbody tr:hover {
   .page-heading {
     margin: 25px 0;
     align-items: flex-start;
+    flex-wrap: wrap;
   }
   .page-heading h1 {
     font-size: 25px;
   }
   .page-heading .button {
-    display: none;
+    display: inline-flex;
   }
   .overview-grid {
     gap: 10px;
