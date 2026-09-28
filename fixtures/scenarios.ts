@@ -1,4 +1,4 @@
-import type { CaseStatus } from '../src/domain/case';
+import type { CaseStatus } from '../src/domain/case.ts';
 
 export interface PreviewCase {
   id: string;

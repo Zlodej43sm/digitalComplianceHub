@@ -15,3 +15,6 @@ playwright-report/
 .idea/
 .claude/
 .mcp.json
+cloudflare.local.json
+wrangler.*.generated.json
+seeds/hosted.local.sql

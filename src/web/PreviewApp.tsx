@@ -18,7 +18,8 @@ import {
   Sparkles,
   Workflow,
 } from 'lucide-react';
-import { scenarios } from '../../fixtures/scenarios';
+import type { PreviewCase } from '../../fixtures/scenarios';
+import type { Session } from '../contracts/session';
 import { statusLabels } from '../domain/case';
 import type { WorkspaceRole } from '../domain/case';
 import type { HealthResponse } from '../contracts/health';
@@ -59,15 +60,8 @@ const workspaces = {
   },
 };
 
-function getRoute() {
+function getRoute(role: WorkspaceRole, scenarios: PreviewCase[]) {
   const parts = window.location.pathname.split('/').filter(Boolean);
-  const validRole =
-    parts[1] === 'client' ||
-    parts[1] === 'manager' ||
-    parts[1] === 'compliance';
-  const role: WorkspaceRole = validRole
-    ? (parts[1] as WorkspaceRole)
-    : 'client';
   const isRoot = parts.length === 0;
   const section = parts[2] ?? 'cases';
   const selected =
@@ -76,18 +70,27 @@ function getRoute() {
       : undefined;
   const invalid =
     !isRoot &&
-    (parts[0] !== 'preview' ||
-      !validRole ||
+    (parts[0] !== 'workspace' ||
+      parts[1] !== role ||
       !['cases', 'workflow', 'guide'].includes(section) ||
       parts.length > 4 ||
       (parts.length === 4 && !selected));
   return { role, section, selected, invalid };
 }
 
-export function PreviewApp() {
-  const { role, section, selected, invalid } = getRoute();
+export function PreviewApp({
+  session,
+  scenarios,
+  onLogout,
+}: {
+  session: Session;
+  scenarios: PreviewCase[];
+  onLogout: () => void;
+}) {
+  const role = session.role as WorkspaceRole;
+  const { section, selected, invalid } = getRoute(role, scenarios);
   const workspace = workspaces[role];
-  const base = `/preview/${role}`;
+  const base = `/workspace/${role}`;
   const [search, setSearch] = useState('');
   const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'offline'>(
     'checking',
@@ -146,7 +149,7 @@ export function PreviewApp() {
           >
             <LayoutDashboard size={18} />
             {workspace.queue}
-            <span className="nav-count">3</span>
+            <span className="nav-count">{scenarios.length}</span>
           </a>
           <a
             className={section === 'workflow' ? 'nav-link active' : 'nav-link'}
@@ -171,10 +174,19 @@ export function PreviewApp() {
             </div>
           </div>
           <div className="profile">
-            <span className="avatar">{workspace.initials}</span>
+            <span className="avatar">
+              {session.displayName
+                .split(' ')
+                .map((part) => part[0])
+                .slice(0, 2)
+                .join('')}
+            </span>
             <div>
-              {workspace.person}
-              <small>{workspace.label}</small>
+              {session.displayName}
+              <small>
+                {session.organizations.map((org) => org.name).join(', ') ||
+                  workspace.label}
+              </small>
             </div>
           </div>
         </div>
@@ -188,24 +200,13 @@ export function PreviewApp() {
           <div className="preview-controls">
             <span className="preview-pill">
               <span />
-              Local preview
+              {session.mode === 'local'
+                ? 'Local test session'
+                : 'Verified session'}
             </span>
-            <label className="role-control">
-              Preview workspace
-              <select
-                aria-label="Preview workspace"
-                value={role}
-                onChange={(event) => {
-                  window.location.assign(
-                    `/preview/${event.target.value}/cases`,
-                  );
-                }}
-              >
-                <option value="client">Client</option>
-                <option value="manager">Manager</option>
-                <option value="compliance">Compliance</option>
-              </select>
-            </label>
+            <button className="button subtle" onClick={onLogout}>
+              Sign out
+            </button>
           </div>
         </header>
         <main id="main" className="content">
@@ -217,12 +218,12 @@ export function PreviewApp() {
                 Explore the workspace with fictional cases.
               </span>
             </span>
-            <span className="foundation-label">Phase 1 / Foundation</span>
+            <span className="foundation-label">Phase 2 / Identity</span>
           </div>
           {invalid ? (
             <section className="empty-state panel">
               <h1>Page not found</h1>
-              <p>This preview page does not exist.</p>
+              <p>This page is unavailable in your workspace.</p>
               <a href={`${base}/cases`} className="button">
                 Back to cases <ArrowRight size={16} />
               </a>
@@ -341,9 +342,8 @@ export function PreviewApp() {
                 ))}
               </section>
               <p className="footnote">
-                Planned workflow. State changes and permissions will be
-                implemented in Phases 2–4. Approval concerns document review,
-                not payment execution.
+                Planned workflow. State changes will be implemented in Phases
+                3–4. Approval concerns document review, not payment execution.
               </p>
             </>
           ) : section === 'guide' ? (
@@ -351,7 +351,7 @@ export function PreviewApp() {
               <div className="page-heading">
                 <div>
                   <p className="eyebrow">A SMALL, FOCUSED PROOF OF CONCEPT</p>
-                  <h1>Explore the foundation.</h1>
+                  <h1>Explore your workspace.</h1>
                   <p>
                     Three workspaces. Three scenarios. One shared review
                     process.
@@ -365,8 +365,8 @@ export function PreviewApp() {
                   </span>
                   <h2>What works today</h2>
                   <p>
-                    Navigate the three role layouts, search example cases, open
-                    scenario outlines, and check the API connection.
+                    Sign in with your assigned role, search authorized examples,
+                    and open scenario outlines within your organization access.
                   </p>
                   <a href={`${base}/cases`} className="text-link">
                     Explore cases <ArrowRight size={16} />
@@ -378,9 +378,8 @@ export function PreviewApp() {
                   </span>
                   <h2>What comes next</h2>
                   <p>
-                    Phase 2 adds sign-in and permissions. Phase 3 adds stored
-                    cases and files. Phase 4 connects the complete review
-                    journey.
+                    Phase 3 adds stored cases and files. Phase 4 connects the
+                    complete review journey.
                   </p>
                   <a href={`${base}/workflow`} className="text-link">
                     See the review process <ArrowRight size={16} />
@@ -401,9 +400,10 @@ export function PreviewApp() {
               <section className="scope-note">
                 <LockKeyhole size={18} />
                 <p>
-                  The workspace selector is local navigation, not
-                  authentication. It is excluded from production builds. The
-                  production build shows a setup screen until Phase 2.
+                  Your role and organization access come from server records.
+                  Test-account sign-in is available only during development;
+                  hosted access requires Cloudflare Access and an invited
+                  account.
                 </p>
               </section>
             </>
@@ -430,7 +430,9 @@ export function PreviewApp() {
                     <FolderOpen size={21} />
                   </span>
                   <div>
-                    <span className="metric">03</span>
+                    <span className="metric">
+                      {String(scenarios.length).padStart(2, '0')}
+                    </span>
                     <span className="metric-label">Example cases</span>
                   </div>
                   <span className="metric-note">Read-only fixtures</span>
@@ -440,7 +442,9 @@ export function PreviewApp() {
                     <FileText size={21} />
                   </span>
                   <div>
-                    <span className="metric">01</span>
+                    <span className="metric">
+                      {scenarios.length ? '01' : '00'}
+                    </span>
                     <span className="metric-label">Correction scenario</span>
                   </div>
                   <span className="metric-note">Missing contract</span>
@@ -450,7 +454,9 @@ export function PreviewApp() {
                     <ShieldCheck size={21} />
                   </span>
                   <div>
-                    <span className="metric">01</span>
+                    <span className="metric">
+                      {scenarios.length ? '01' : '00'}
+                    </span>
                     <span className="metric-label">Review scenario</span>
                   </div>
                   <span className="metric-note">Amount mismatch</span>
@@ -543,7 +549,9 @@ export function PreviewApp() {
                   )}
                 </div>
                 <div className="table-footer">
-                  <span>{visibleCases.length} of 3 example cases</span>
+                  <span>
+                    {visibleCases.length} of {scenarios.length} example cases
+                  </span>
                   <span>Illustrative statuses · no live activity</span>
                 </div>
               </section>
@@ -587,15 +595,15 @@ export function PreviewApp() {
           <footer className="page-footer">
             <span>
               Digital Compliance Hub <span className="footer-divider">/</span>{' '}
-              Foundation preview
+              Identity & access POC
             </span>
             <span className={`api-state ${apiStatus}`}>
               <span />
               {apiStatus === 'online'
-                ? 'Local API connected'
+                ? 'API connected'
                 : apiStatus === 'offline'
-                  ? 'Local API unavailable'
-                  : 'Checking local API…'}
+                  ? 'API unavailable'
+                  : 'Checking API…'}
             </span>
           </footer>
         </main>

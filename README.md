@@ -1,74 +1,72 @@
 # Digital Compliance Hub
 
-A synthetic-data document-review POC for corporate clients, relationship managers and compliance officers. Phase 1 provides a local, read-only workspace foundation. No sign-in, persistent cases, uploads, decisions or AI processing are implemented yet.
+A synthetic-data document-review POC for corporate clients, relationship managers and compliance officers. Phase 2 implements identity, server-enforced roles and organization boundaries. Hosted deployment and MFA verification are pending Cloudflare access and configuration. Stored cases, documents, review actions and AI processing arrive in later phases.
 
 ## Start locally
 
-Requirements: Node.js 24 LTS (24.13.0 or later in the 24.x line), pnpm 11.4.0, and RTK for this workspace's shell convention. If installed locally, `nvm use` selects Node 24. No Cloudflare account or secrets are needed.
+Use Node.js 24 LTS (24.13.0+ within 24.x), pnpm 11.4.0 and RTK. No Cloudflare account or secrets are needed for local development.
 
 ```bash
 rtk pnpm install --frozen-lockfile
+rtk pnpm setup:local
 rtk pnpm dev
 ```
 
-Open [the local workspace](http://127.0.0.1:5178). The dev server binds to loopback. If that port is occupied, use `rtk pnpm dev --port 5180` and open that port instead. The workspace selector navigates between fictional role layouts; it is not authentication and cannot grant access to any real records.
+Open [the local workspace](http://127.0.0.1:5178). Sign in using one of the fictional test accounts. This development-only login does not demonstrate MFA and is excluded from production bundles. The server loads roles and organization assignments from D1 on every request; URL paths and browser headers cannot select privileges.
 
-| Preview        | Local route                         |
-| -------------- | ----------------------------------- |
-| Client         | `/preview/client/cases`             |
-| Manager        | `/preview/manager/cases`            |
-| Compliance     | `/preview/compliance/cases`         |
-| Case outline   | `/preview/client/cases/FX-2026-001` |
-| Review process | `/preview/client/workflow`          |
-| Demo guide     | `/preview/client/guide`             |
-| Health API     | `/api/health`                       |
+| Account | Effective access |
+| --- | --- |
+| Northstar client | Northstar Demo Ltd; three read-only scenario outlines |
+| Cedar client | Cedar Demo Ltd; empty workspace, no Northstar records |
+| Alex Morgan | Manager assigned to Northstar only |
+| Jamie Taylor | Compliance officer assigned to Northstar only |
+| Demo administrator | Separate administration shell; no business-data access |
 
-Search the three example cases, open their outlines, change the local workspace, and refresh a nested route. All scenario records are static and fictional. The scenario contract is in [docs/poc-demo-contract.md](docs/poc-demo-contract.md).
+Use separate browser profiles for concurrent identities. Sign out before changing accounts. Local sessions last 30 minutes and use an opaque HttpOnly, SameSite=Strict cookie; only its hash is stored. Setup is repeatable and does not reset existing identities or data. Local state lives in ignored `.wrangler/state/`.
 
-## Verify and inspect the production build
+Routes are `/workspace/client/cases`, `/workspace/manager/cases`, and `/workspace/compliance/cases`. Each account can open only its own role layout. `/api/me` returns the effective session; `/api/workspace` returns authorized synthetic outlines. Uploads and decisions are not implemented. See the [demo contract](docs/poc-demo-contract.md).
+
+## Verification
 
 ```bash
 rtk pnpm verify
-rtk pnpm preview
 ```
 
-`verify` runs strict TypeScript checking, the production build and HTTP smoke checks against the built Worker on loopback port 4179. Keep that port free. `preview` serves the built application on [port 4173](http://127.0.0.1:4173).
+Runs strict TypeScript checking, JWT and authorization tests against an in-memory SQLite database using the real migration SQL, production compilation, bundle-boundary checks and HTTP checks on port 4179. Node's built-in SQLite is experimental and used only by the test adapter; deployed storage uses D1. Keep port 4179 free.
 
-The production build deliberately shows a setup screen. The local preview module, example-case screens and workspace selector are excluded at build time. This is a temporary Phase 1 boundary, not a replacement for the Access authentication and resource authorization to be added in Phase 2.
+The built Worker requires a valid Cloudflare Access JWT and provisioned membership for pages, assets and protected APIs. Only `/api/health` exposes an unauthenticated constant health response at the Worker layer; hosted Access still covers the whole hostname. Running `rtk pnpm preview --port 4178` locally therefore returns 401 for protected pages. Use `pnpm dev` for local test sign-in.
 
-The health endpoint returns only `status` and a constant service name. All other API paths, including case requests, return JSON 404. No case mutation or upload endpoint exists.
+Checks cover JWT signature/issuer/audience/expiry, unknown identities, cross-bank constraints, two client organizations, staff assignments, admin isolation, forged role headers, CSRF, expiry, disabled users and logout revocation. Production bundles exclude the local login adapter and browser-side case fixtures. [Verification record](docs/phase-2-verification.md).
+
+## Cloudflare deployment
+
+Follow the [Phase 2 hosted runbook](docs/cloudflare-environments.md). `wrangler.jsonc` is local-only. Real dev/demo configs are generated from ignored `cloudflare.local.json`; identifiers and hostname are required rather than fabricated.
+
+```bash
+rtk pnpm configure:cloudflare dev
+rtk pnpm build:cloudflare dev
+```
+
+These commands need completed configuration and do not deploy. A hosted build validates the production boundary. Provision Access/MFA and isolated EU D1/private R2 resources before deploying the built configuration. Public workers.dev and preview aliases are disabled. Do not deploy the raw source entry point or a development server.
 
 ## Project layout
 
 ```text
-src/web/                    React layouts and styles
-src/api/                    Portable Hono API
-src/domain/                 Planned domain types and status vocabulary
+src/web/                    React role workspaces and session handling
+src/api/                    Hono API, JWT verification, authorization
+src/domain/                 Domain types and status vocabulary
 src/contracts/              Shared API contracts
-src/adapters/cloudflare/    Workers entry point
-fixtures/                   Fictional presentation scenarios
-migrations/                 Reserved for Phase 2 D1 migrations
-tests/                      Verification scope and later feature tests
-scripts/                    Production HTTP smoke runner
+src/adapters/cloudflare/    Worker and separately compiled local identity adapter
+fixtures/                   Fictional outlines served only after authorization
+migrations/                 Versioned D1 schema
+seeds/                      Local fixtures and hosted identity seed template
+tests/                      JWT, SQL, policy and configuration checks
+scripts/                    Build guards, configuration and HTTP smoke checks
 docs/poc-phases/             Bounded implementation briefs
 ```
 
-The app uses the Cloudflare Vite plugin to execute the API in the local Workers runtime. Node.js runs development/build tooling; the Worker is not a Node.js server. The approach follows Cloudflare's [React/Vite guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/react/).
+Cloudflare Vite runs the API in the Workers runtime. Node.js runs development/build tooling; the Worker is not a Node.js server. Dependencies and the compatibility date are pinned. The Worker inspector is disabled to avoid local port conflicts.
 
-## Configuration and CI
+GitHub Actions installs the lockfile and runs `pnpm verify` with read-only repository permissions. It does not deploy; no remote CI run is claimed by local verification. Secrets, local account configuration and generated files are ignored. Never put secrets in browser `VITE_*` variables. Keep pnpm's release-age and reviewed build-script policy intact.
 
-- `.env.example` and `.dev.vars.example` document the empty Phase 1 configuration. No copy step is required to start. Browser `VITE_*` values must never contain secrets.
-- `.env*`, `.dev.vars*`, local credentials/configuration, editor files and generated output are ignored. Example files remain tracked.
-- `wrangler.jsonc` reserves distinct local/dev/demo Worker names. Public workers.dev and preview URLs are disabled; no domains or D1/R2 bindings are provisioned. See [environment reservations](docs/cloudflare-environments.md).
-- The Worker inspector is disabled by default so local development and verification do not compete for the common debugger port.
-- pnpm's build-script policy allows only the pinned esbuild/workerd install scripts required by the tooling. Keep this list reviewed alongside dependency updates.
-- GitHub Actions installs the lockfile and runs `pnpm verify` on pushes/PRs, with read-only repository permissions. It does not deploy or require Cloudflare credentials. The workflow can run after a GitHub repository is connected.
-- Use `rtk pnpm exec prettier --write src fixtures scripts vite.config.ts` to format source changes.
-
-There is intentionally no deploy command in Phase 1. A production build alone does not make this application ready to accept banking documents.
-
-## Next phase
-
-Continue with [Phase 2 — identity and private Cloudflare environment](docs/poc-phases/02-identity-and-cloudflare.md). The full [POC phase plan](docs/cloudflare-poc-plan.md) defines the subsequent document, review, analysis and release work.
-
-See [Phase 1 verification](docs/phase-1-verification.md) for the completed checks and current limitations.
+Phase 2's hosted completion gate remains open. [Current phase](docs/poc-phases/02-identity-and-cloudflare.md) · [POC plan](docs/cloudflare-poc-plan.md) · [Next: cases and documents](docs/poc-phases/03-cases-and-documents.md).

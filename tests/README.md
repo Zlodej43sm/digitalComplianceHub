@@ -1,5 +1,5 @@
 # Verification
 
-Phase 1 uses `pnpm verify`: TypeScript checking, production build, and HTTP smoke checks against the built Worker and static assets. The smoke runner lives in `scripts/smoke.mjs`.
+`rtk pnpm verify` runs TypeScript, Node test suites, production build guards and built-Worker HTTP checks. Identity tests execute real migration/seed SQL through Node SQLite, not a mocked SQL parser. This adapter is not a claim of D1 runtime equivalence; a separate local D1 runtime walkthrough is recorded in [Phase 2 verification](../docs/phase-2-verification.md).
 
-No business authorization, persistence or workflow is implemented yet. Add policy tests and browser journeys with those features in Phases 2–4 rather than tests that claim they work now.
+Hosted MFA, identity-provider integration and browser journeys require the manual completion gate in [the hosted runbook](../docs/cloudflare-environments.md). No end-to-end browser suite is implemented yet.

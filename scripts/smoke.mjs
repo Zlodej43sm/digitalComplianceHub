@@ -1,4 +1,8 @@
 import assert from 'node:assert/strict';
+import { verifyBuild } from './verify-build.mjs';
+import { readdirSync } from 'node:fs';
+
+verifyBuild();
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 
@@ -50,32 +54,36 @@ try {
     status: 'ok',
     service: 'digital-compliance-hub',
   });
-  for (const path of ['/api', '/api/unknown', '/api/cases']) {
+  for (const path of [
+    '/api',
+    '/api/unknown',
+    '/api/cases',
+    '/api/me',
+    '/api/local/accounts',
+    '/api/workspace',
+  ]) {
     const response = await fetch(`${origin}${path}`);
-    assert.equal(response.status, 404, path);
-    assert.deepEqual(await response.json(), { error: 'Not found' });
+    assert.equal(response.status, 401, path);
+    assert.deepEqual(await response.json(), { error: 'Sign-in required' });
   }
   const mutation = await fetch(`${origin}/api/health`, { method: 'POST' });
-  assert.equal(mutation.status, 404);
+  assert.equal(mutation.status, 403);
   for (const path of [
     '/',
     '/preview/client/cases',
     '/preview/manager/cases/FX-2026-001',
     '/preview/compliance/workflow',
+    ...readdirSync('dist/client/assets').map((file) => `/assets/${file}`),
   ]) {
     const response = await fetch(`${origin}${path}`, {
       headers: { Accept: 'text/html' },
     });
-    assert.equal(response.status, 200, path);
-    const html = await response.text();
-    assert.ok(html.includes('<div id="root"></div>'), path);
-    assert.ok(
-      !html.includes('/src/web/main.tsx'),
-      'Built assets must be served',
-    );
+    assert.equal(response.status, 401, path);
+    assert.equal(response.headers.get('cache-control'), 'no-store');
+    assert.deepEqual(await response.json(), { error: 'Sign-in required' });
   }
   console.log(
-    'Smoke passed: health, no-store, API 404s, rejected mutation and nested SPA routes.',
+    'Smoke passed: health, no-store, protected APIs/assets, blocked local sign-in and rejected cross-origin mutation.',
   );
 } catch (error) {
   console.error(output);

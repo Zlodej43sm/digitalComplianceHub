@@ -5,22 +5,17 @@
   "compatibility_date": "2026-09-28",
   "workers_dev": false,
   "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dch-local-metadata",
+      "migrations_dir": "migrations",
+    },
+  ],
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api", "/api/*"],
-  },
-  "env": {
-    "dev": {
-      "name": "digital-compliance-hub-dev",
-      "workers_dev": false,
-      "preview_urls": false,
-    },
-    "demo": {
-      "name": "digital-compliance-hub-demo",
-      "workers_dev": false,
-      "preview_urls": false,
-    },
+    "run_worker_first": true,
   },
 }

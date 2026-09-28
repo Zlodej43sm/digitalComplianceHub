@@ -1126,3 +1126,13 @@ tbody tr:hover {
     margin: 10vh 10px;
   }
 }
+.local-login {
+  display: grid;
+  gap: 12px;
+  max-width: 540px;
+  margin: 28px auto;
+}
+.local-login .button {
+  justify-content: center;
+  cursor: pointer;
+}

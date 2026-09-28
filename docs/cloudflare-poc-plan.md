@@ -1,6 +1,6 @@
 # Digital Compliance Hub — phased Cloudflare POC implementation plan
 
-Updated 28 September 2026 · POC only. Phase 1 is implemented and locally verified; Phases 2–7 are not started. The application is not deployed to Cloudflare. See the [local setup](../README.md) and [Phase 1 verification](phase-1-verification.md).
+Updated 28 September 2026 · POC only. Phase 1 is complete. Phase 2 identity and permissions are implemented and locally verified; its hosted gate is pending. Phases 3–7 are not started. The application is not deployed to Cloudflare. See the [local setup](../README.md) and [Phase 1 verification](phase-1-verification.md).
 
 ## 1. What the demo must prove
 
@@ -22,7 +22,7 @@ Confirmed scope: synthetic fixture files only, with potential customers in both 
 | Files | Private R2 bucket, EU jurisdiction | Synthetic originals and immutable version objects. Public bucket access stays disabled. |
 | Authentication | Cloudflare Access connected to an identity provider with MFA | Invite-only demo; API validates Access JWT signature, issuer, audience and expiry, then maps identity to application roles. Access admission alone does not decide case permissions. [JWT verification](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/) |
 | Processing | Persisted job/outbox records + Cloudflare Queues | Asynchronous simulated extraction and visible retry/failure states. Consumers must tolerate duplicate delivery. [Delivery guarantees](https://developers.cloudflare.com/queues/reference/delivery-guarantees/) |
-| Verification and deployment | Vitest, Playwright, Wrangler and CI | Reproducible local setup, guarded deployment and repeatable acceptance checks. |
+| Verification and deployment | Node test runner + SQLite (Phase 2), browser journeys (later), Wrangler and CI | Reproducible local setup, guarded deployment and repeatable acceptance checks. |
 
 The confirmed language preference is JavaScript/TypeScript and Node.js, with Python only where it adds value. Use Node.js 24 LTS for development tooling. Workers runs its own runtime, not a full Node.js process; the production application uses Node.js containers. Keep domain logic runtime-neutral. Pin compatible stable dependencies, Wrangler, and the Workers compatibility date; do not depend on previews for the base demo. Python and GPU infrastructure are unnecessary for this first simulated-AI POC.
 
@@ -88,7 +88,7 @@ Identity protection is configured before sharing any deployed URL. Intermediate 
 
 ## 6. Runbook contract to deliver with the implementation
 
-The following scripts are planned deliverables. They do not exist yet and are not runnable today. Repository shell instructions use the local RTK convention.
+Install, setup:local, dev and verify are implemented for the current phase. Other commands below remain planned deliverables and are not runnable yet. See the README for current hosted configuration/build commands. Repository shell instructions use the local RTK convention.
 
 | Future command | Expected outcome |
 | --- | --- |

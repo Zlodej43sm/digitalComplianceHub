@@ -1,6 +1,8 @@
 # POC Phase 2 — Identity, permissions and private Cloudflare environment
 
-Status: not started. Depends on: Phase 1. Estimate: 1–2 engineering days.
+Status: local implementation and automated checks complete; hosted deployment/MFA gate pending. Depends on: Phase 1.
+
+Implementation: [local setup](../../README.md), [hosted runbook](../cloudflare-environments.md), [verification and limitations](../phase-2-verification.md).
 
 Goal: log in to a hosted app with real identity verification and server-enforced roles before introducing document access.
 

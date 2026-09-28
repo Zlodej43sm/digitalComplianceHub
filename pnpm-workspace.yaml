@@ -1,3 +1,7 @@
 allowBuilds:
   esbuild@0.28.1: true
+  workerd: set this to true or false
   workerd@1.20260923.1: true
+  workerd@1.20260926.1: true
+minimumReleaseAgeExclude:
+  - wrangler@4.143.0

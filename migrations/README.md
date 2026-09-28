@@ -1,3 +1,5 @@
-# Database migrations
+# D1 migrations
 
-No database is provisioned in Phase 1. Add ordered D1 SQL migrations with the identity schema in Phase 2. Keep metadata migrations separate from object-storage operations. Never include credentials or real customer records.
+`0001_identity.sql` defines bank/organization boundaries, unique verified identities, one effective membership per identity, explicit staff assignments and development session storage. SQL uses composite foreign keys and parameterized application queries.
+
+Run `rtk pnpm setup:local` for local migrations and synthetic seeds. The hosted procedure is in [the runbook](../docs/cloudflare-environments.md). Never apply `seeds/local.sql` to a hosted database. The deployed Worker never reads local-session authentication records.
