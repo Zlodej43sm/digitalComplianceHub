@@ -50,6 +50,11 @@ try {
   const health = await fetch(`${origin}/api/health`);
   assert.equal(health.status, 200);
   assert.equal(health.headers.get('cache-control'), 'no-store');
+  assert.match(health.headers.get('content-security-policy') ?? '', /default-src 'self'/);
+  assert.equal(
+    health.headers.get('permissions-policy'),
+    'camera=(), microphone=(), geolocation=()',
+  );
   assert.deepEqual(await health.json(), {
     status: 'ok',
     service: 'digital-compliance-hub',

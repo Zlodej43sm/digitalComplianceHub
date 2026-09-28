@@ -1,6 +1,6 @@
 # POC Phase 4 — Manager and compliance review cycle
 
-Status: implemented locally; hosted migration/deployment and browser walkthrough pending. Depends on: Phase 3.
+Status: implemented and verified locally and in the hosted synthetic demo. Cloudflare Access is outside the current POC scope. Depends on: Phase 3.
 
 Goal: complete the entire customer journey manually, including a correction and a reasoned final decision.
 

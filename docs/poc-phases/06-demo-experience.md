@@ -1,6 +1,6 @@
 # POC Phase 6 — Customer demo experience
 
-Status: not started. Depends on: Phase 5 for the full POC. Estimate: 1–2 engineering days.
+Status: implemented. Depends on: Phase 5 for the full POC. Estimate: 1–2 engineering days.
 
 Goal: make the working journey easy for prospective customers to understand and navigate.
 
@@ -32,5 +32,7 @@ This phase polishes working screens. It does not add a reporting warehouse, regu
 6. Trigger an empty queue, failed analysis, failed upload and expired session; each should give a meaningful next action.
 
 Completion gate: a second person can follow the walkthrough and explain its result. Record usability issues separately from optional new features; fix issues that prevent the demo before release.
+
+Implemented artifacts: the scoped `/api/dashboard` summary, role-specific bilingual workspaces, safe `#case=` deep links, deterministic `pnpm seed:scenarios` bootstrap and the [eight-minute walkthrough](../demo-walkthrough.md). Pending cases are excluded from completed-turnaround calculations.
 
 Next: [Phase 7](07-verification-and-release.md). Overall scope: [POC plan](../cloudflare-poc-plan.md).

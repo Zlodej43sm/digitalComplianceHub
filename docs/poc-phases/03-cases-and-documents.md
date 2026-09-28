@@ -1,6 +1,6 @@
 # POC Phase 3 — Client cases and private documents
 
-Status: implemented locally; hosted migration/deployment and browser walkthrough pending. Depends on: Phase 2.
+Status: implemented and verified locally and in the hosted synthetic demo. Cloudflare Access is outside the current POC scope. Depends on: Phase 2.
 
 Goal: a client can create, populate and submit a persistent case using the supplied synthetic files.
 

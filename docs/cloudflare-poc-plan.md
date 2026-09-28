@@ -1,10 +1,10 @@
 # Digital Compliance Hub — phased Cloudflare POC implementation plan
 
-Updated 28 September 2026 · POC only. Phase 1 is complete. Phase 2 identity and permissions are implemented and locally verified; its hosted gate is pending. Phases 3–7 are not started. The application is not deployed to Cloudflare. See the [local setup](../README.md) and [Phase 1 verification](phase-1-verification.md).
+Updated 28 September 2026 · POC only. Phases 1–7 are implemented for the public synthetic-data scope and deployed at `https://dch.cooptinyteam.org`. Local verification, hosted API smoke, D1/R2 backup verification and Worker rollback rehearsal are implemented. Cloudflare Access/MFA is deliberately excluded. See the [local setup](../README.md), [phase alignment record](phases-1-7-alignment.md) and [release acceptance record](release-acceptance.md).
 
 ## Current phase amendment
 
-User-directed change: the current hosted POC uses the same public fictional-account picker as local development. Access/IdP/MFA and invite-only release requirements below are deferred; they describe the earlier plan and future real-identity work. Server-side selected-session permissions remain enforced. See [current Phase 2 scope](poc-phases/02-identity-and-cloudflare.md).
+User-directed change: the hosted POC uses the same public fictional-account picker as local development. Access/IdP/MFA and invite-only release requirements are deferred to a future production-security phase. Server-side selected-session permissions remain enforced. See [current Phase 2 scope](poc-phases/02-identity-and-cloudflare.md).
 
 ## 1. What the demo must prove
 
@@ -12,7 +12,7 @@ A corporate client submits a document package; a manager checks completeness; a 
 
 Use one case type: a fictional corporate cross-border payment document review with a contract and invoice. Approval is a document-review outcome only. No payment, trading, live FX, sanctions screening, or legal-compliance determination is performed.
 
-The base POC uses one fictional bank, two fictional corporate organizations, and four account types: client, manager, compliance officer, and a restricted demo administrator. Separate client identities for the two organizations allow isolation checks. Customer-demo users cannot freely switch into staff roles; use separate browser profiles/accounts for the presentation.
+The base POC uses one fictional bank, two fictional corporate organizations, and four account types: client, manager, compliance officer, and a restricted demo administrator. Separate client identities for the two organizations allow isolation checks. The public account picker exposes these fictional roles for demonstration; it is not a real authentication control.
 
 Confirmed scope: synthetic fixture files only, with potential customers in both Ukraine and the EU/EEA. Display “Demo — synthetic data” and “Simulated analysis” where relevant. The first version is a workflow proof, not an OCR benchmark. Keep the UI ready for Ukrainian/English localization, but use one shared demonstration scenario; it is not a validated regulatory rule pack for either market.
 
@@ -24,7 +24,7 @@ Confirmed scope: synthetic fixture files only, with potential customers in both 
 | Hosting and API | Cloudflare Workers Static Assets + Hono | Single deployment for SPA and API; same-origin requests. Cloudflare documents this architecture directly. [React guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/react/), [Hono guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/more-web-frameworks/hono/) |
 | Records | D1, created with EU jurisdiction for the demo | Cases, memberships, document metadata, messages, decisions, audit and jobs. Explicit SQL migrations and parameterized queries. |
 | Files | Private R2 bucket, EU jurisdiction | Synthetic originals and immutable version objects. Public bucket access stays disabled. |
-| Authentication | Cloudflare Access connected to an identity provider with MFA | Invite-only demo; API validates Access JWT signature, issuer, audience and expiry, then maps identity to application roles. Access admission alone does not decide case permissions. [JWT verification](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/) |
+| Authentication | Signed, secure demo session selected from fictional accounts | Matches local and hosted POC behavior. API maps the signed session to server-side roles and organizations. Cloudflare Access/MFA is deferred. |
 | Processing | Persisted job/outbox records + Cloudflare Queues | Asynchronous simulated extraction and visible retry/failure states. Consumers must tolerate duplicate delivery. [Delivery guarantees](https://developers.cloudflare.com/queues/reference/delivery-guarantees/) |
 | Verification and deployment | Node test runner + SQLite (Phase 2), browser journeys (later), Wrangler and CI | Reproducible local setup, guarded deployment and repeatable acceptance checks. |
 
@@ -57,26 +57,24 @@ Implement these phases in order. Each linked description is a bounded implementa
 | Phase | Implementation brief | Visible result | Estimated engineering days |
 | --- | --- | --- | --- |
 | 1 | [Foundation and demo contract](poc-phases/01-foundation.md) | App starts locally; role layouts and the exact demo scenario are defined. | 0.5–1.5 |
-| 2 | [Identity, permissions and private Cloudflare environment](poc-phases/02-identity-and-cloudflare.md) | Invited users log in to a protected hosted app with enforced roles and organization scope. | 1–2 |
+| 2 | [Demo sessions and organization permissions](poc-phases/02-identity-and-cloudflare.md) | Fictional users select a signed session; the API enforces roles and organization scope. | 1–2 |
 | 3 | [Client cases and private documents](poc-phases/03-cases-and-documents.md) | A client creates a case, uploads supplied files, preserves versions and submits. | 2–3 |
 | 4 | [Manager and compliance review cycle](poc-phases/04-review-workflow.md) | The complete manual correction-and-decision journey works across all three workspaces. | 3–4 |
 | 5 | [Simulated document analysis](poc-phases/05-simulated-analysis.md) | Background analysis shows source-linked fixture findings and recoverable failures. | 1–2 |
 | 6 | [Customer demo experience](poc-phases/06-demo-experience.md) | Clear work queues, notifications, statistics and Ukrainian/English interface text. | 1–2 |
-| 7 | [Verification, recovery and demo release](poc-phases/07-verification-and-release.md) | An invite-only, repeatable Cloudflare demonstration with a tested runbook. | 1.5–3 |
+| 7 | [Verification, recovery and demo release](poc-phases/07-verification-and-release.md) | A repeatable public synthetic Cloudflare demonstration with a tested runbook. | 1.5–3 |
 
 Total: approximately 10–18 engineering days, typically 2–4 calendar weeks for one experienced full-stack engineer with prompt feedback. Account setup and missing hosting access can extend elapsed time. These are estimates, not commitments.
 
 Review milestones:
 
-- After Phase 2: verify the hosting and identity approach with an empty protected app.
+- After Phase 2: verify fictional sessions, server-side role checks and organization isolation locally and on the hosted app.
 - After Phase 4: walk through the complete workflow internally and adjust it before adding analysis or polishing screens.
-- After Phase 7: present the full POC to invited prospective customers.
+- After Phase 7: present the full synthetic POC to prospective customers.
 
 For a shorter demonstration, the Phase 4 manual workflow can be taken directly through the relevant Phase 7 release checks. In that reduced scope, omit the AI and statistics demonstration explicitly; do not bypass identity, isolation, file restrictions, audit or recovery checks. The default plan includes all seven phases.
 
-Each phase is complete when its deliverables are present, relevant checks pass, and its walkthrough can be reproduced. Record changed files, exact available commands and known limitations at handover. Future scripts below are promises to implement, not evidence that the phase is complete.
-
-Identity protection is configured before sharing any deployed URL. Intermediate deployments remain within the development allowlist; customer invitations follow the release gate. Use the linked phase number as the scope of a future request, for example “Implement POC Phase 1.”
+Each phase is complete when its deliverables are present, relevant checks pass, and its walkthrough can be reproduced. Current evidence and remaining manual checks are recorded in the alignment and acceptance records.
 
 ## 5. Important implementation details
 
@@ -84,30 +82,30 @@ Identity protection is configured before sharing any deployed URL. Intermediate 
 - **Delivery gaps:** an outbox dispatcher publishes pending work; a scheduled retry sweep recovers publish failures. A crash after publishing can cause duplicate delivery, handled with a unique job/version key. No documents or extracted text in queue payloads; carry scoped identifiers.
 - **File consistency:** stage the upload, verify permitted bytes, store under a new generated key, then finalize metadata. Clean incomplete objects through reconciliation. Never overwrite v1 when v2 arrives.
 - **Scope:** derive bank/organization membership from validated identity, not a browser-supplied tenant header. Every list, statistic, file and message endpoint applies the same policies. Staff assignment is checked server-side.
-- **Role presentation:** use real separate demo identities. If a presenter role-switch feature is later requested, it must be restricted to a presenter-only environment and cannot replace authorization.
+- **Role presentation:** the POC uses a fictional-account picker backed by signed sessions. Replace it with bank identity integration before any real-data pilot.
 - **Session and browser protections:** keep identity tokens out of localStorage; protect state-changing requests against CSRF and enforce same-origin policy. API failures return a usable session-expired message.
 - **Audit honesty:** demo audit rows are append-only through the app; an account/database administrator could still change them. Do not label them immutable or regulatory-certified.
-- **Deployment exposure:** protect the custom hostname and prevent bypass via workers.dev, preview URLs or alternate routes; verify the API and document endpoints independently. Keep non-sensitive static assets separate from sensitive responses.
+- **Deployment exposure:** the current custom hostname is public by design and synthetic-only. Hosted smoke verifies API and document authorization independently. A real-data pilot requires protected identity and route controls.
 - **Reset boundary:** reset operates only on the designated synthetic demo environment, requires administrator authorization, and cannot select production resources. Define a demo expiry date and remove invites/resources when finished.
 
 ## 6. Runbook contract to deliver with the implementation
 
-Install, setup:local, dev and verify are implemented for the current phase. Other commands below remain planned deliverables and are not runnable yet. See the README for current hosted configuration/build commands. Repository shell instructions use the local RTK convention.
+The commands below are implemented. Repository shell instructions use the local RTK convention.
 
-| Future command | Expected outcome |
+| Command | Expected outcome |
 | --- | --- |
 | `rtk pnpm install --frozen-lockfile` | Install the committed dependency versions. |
 | `rtk pnpm setup:local` | Apply local migrations and seed fictional memberships/cases/fixtures without Cloudflare credentials. Local test identity is bound to localhost and cannot be enabled in a deployed build. |
 | `rtk pnpm dev` | Run SPA/API and local Cloudflare bindings, with documented test identities. |
 | `rtk pnpm verify` | Run type checks, relevant policy/workflow tests and production build. |
-| `rtk pnpm test:e2e` | Run isolated local journeys for all roles, visibility and denial scenarios. |
-| `rtk pnpm deploy:demo` | Validate the named demo environment, apply compatible remote migrations and deploy the pinned Worker/assets. |
-| `rtk pnpm seed:demo` | Seed synthetic demo data using an environment-guarded administrative path. |
-| `rtk pnpm smoke:demo` | Check the hosted health/authentication/API paths without weakening Access; document test credential provisioning. |
-| `rtk pnpm export:demo` / `rtk pnpm restore:demo` | Export metadata plus object manifest/bytes and restore into an explicit disposable target; verify checksums. |
-| `rtk pnpm reset:demo` | Reset only the named demo dataset after displaying the target and taking the required export. |
+| `rtk pnpm release:check` | Run local verification plus configuration, migration, fixture and runbook preflight. |
+| `rtk pnpm build:cloudflare demo` / `rtk pnpm deploy:cloudflare demo` | Build and deploy the selected environment with its generated Wrangler configuration. |
+| `rtk pnpm seed:scenarios ORIGIN` | Create the bounded synthetic walkthrough scenarios through the API. |
+| `rtk pnpm smoke:hosted ORIGIN` | Check hosted headers, sessions, CSRF, tenant isolation, roles, files, notifications, statistics and fixture restrictions. |
+| `rtk pnpm backup:cloudflare demo` / `rtk pnpm restore:cloudflare dev BACKUP --confirm=dch-dev-metadata` | Export D1 plus R2 objects with checksums and restore only into an explicit disposable environment. |
+| `rtk pnpm reset:cloudflare demo --confirm=dch-demo-metadata` | Back up and reset only the named demo dataset after exact target confirmation. |
 
-Hosted prerequisites: a Cloudflare account with the necessary services enabled, a demo hostname, an identity provider and invited test users, a scoped deployment API token, and separate dev/demo resource identifiers. The implementation runbook must include exact provisioning steps and commands using its actual resource names. No accounts or billable resources are created by this planning task.
+Hosted prerequisites: a Cloudflare account with the necessary services enabled, a demo hostname, a scoped deployment API token, and separate dev/demo resource identifiers. No external identity provider is required for the current synthetic POC.
 
 ## 7. Eight-minute customer presentation
 
@@ -125,6 +123,6 @@ Then ask the customer to explain the next action without assistance, identify mi
 
 For low traffic, supplied files and simulated AI, use a planning allowance of roughly USD 10–30/month for core demo hosting/storage/queue usage. This is an estimate, not a quote or a spending cap. Cloudflare Workers Paid currently starts at USD 5/month; Access/identity licensing, domains, taxes, enterprise localization and any real AI service may add costs. Verify account-specific pricing before provisioning, set usage alerts and application quotas. [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/)
 
-The POC is complete when the hosted walkthrough passes for the permitted roles, the isolation/visibility checks pass, and the demo can be reset and recovered using the delivered runbook. Deliver the hosted URL, access instructions, synthetic fixture pack, verification results and known limitations.
+The POC implementation is complete when the hosted walkthrough works for the fictional roles, the isolation/visibility checks pass, and backup/recovery commands are delivered and verified. The remaining presenter-led walkthrough and destructive reset rehearsal are tracked explicitly in the acceptance record.
 
-Real OCR/LLM inference, Python services, arbitrary document uploads, bank integrations, production database migration, regulatory rule packs and a real-data pilot are outside these phases. Those require separately scoped work under the [production implementation plan](production-implementation-plan.md). Synthetic-only refers to banking content; invited users' real account identities and session metadata still require privacy and access controls.
+Real authentication, Cloudflare Access/MFA, OCR/LLM inference, Python services, arbitrary document uploads, bank integrations, production database migration, regulatory rule packs and a real-data pilot are outside these phases. Those require separately scoped work under the [production implementation plan](production-implementation-plan.md).

@@ -177,13 +177,15 @@ export function mountWorkflow(app: Hono<AppEnv>) {
     const s = c.get('session'),
       row = await scoped(c),
       b: any = await c.req.json().catch(() => null);
-    if (
-      !['manager', 'compliance'].includes(s.role) ||
-      !row ||
-      typeof b?.body !== 'string' ||
-      !['internal', 'client'].includes(b.visibility)
-    )
+    if (!['manager', 'compliance'].includes(s.role) || !row)
       return c.json({ error: 'Forbidden' }, 403);
+    const message = typeof b?.body === 'string' ? b.body.trim() : '';
+    if (
+      message.length < 1 ||
+      message.length > 2000 ||
+      !['internal', 'client'].includes(b?.visibility)
+    )
+      return c.json({ error: 'Invalid message' }, 400);
     await c.env.DB.prepare('INSERT INTO case_messages VALUES (?,?,?,?,?,?,?)')
       .bind(
         id('msg'),
@@ -191,7 +193,7 @@ export function mountWorkflow(app: Hono<AppEnv>) {
         s.userId,
         b.visibility,
         'note',
-        b.body.trim().slice(0, 2000),
+        message,
         now(),
       )
       .run();

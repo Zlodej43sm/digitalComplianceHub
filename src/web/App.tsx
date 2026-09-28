@@ -4,6 +4,7 @@ import type { PreviewCase } from '../../fixtures/scenarios';
 import { PreviewApp } from './PreviewApp';
 import { ClientCases } from './ClientCases';
 import { ReviewWorkspace } from './ReviewWorkspace';
+import { useI18n } from './i18n';
 
 async function read<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: 'no-store' });
@@ -11,21 +12,16 @@ async function read<T>(path: string): Promise<T> {
     !response.ok ||
     !response.headers.get('content-type')?.includes('application/json')
   ) {
-    throw new Error(
-      response.status === 403
-        ? 'Your account is not authorized.'
-        : response.status >= 500
-          ? 'Identity service is unavailable. Check configuration and database setup.'
-          : 'Sign in to continue. Your session may have expired.',
-    );
+    throw new Error(String(response.status));
   }
   return response.json() as Promise<T>;
 }
 
 export function App() {
+  const { language, setLanguage, t } = useI18n();
   const [session, setSession] = useState<Session | null>(null);
   const [scenarios, setScenarios] = useState<PreviewCase[]>([]);
-  const [message, setMessage] = useState('Checking your session…');
+  const [message, setMessage] = useState(t('sessionChecking'));
   const [accounts, setAccounts] = useState<
     { id: string; name: string; role: string }[]
   >([]);
@@ -47,9 +43,10 @@ export function App() {
         }
       } catch (error) {
         if (active) {
+          const status = Number((error as Error).message);
           setSession(null);
           setScenarios([]);
-          setMessage((error as Error).message);
+          setMessage(status === 403 ? t('unauthorized') : status >= 500 ? t('serviceUnavailable') : t('signInRequired'));
         }
       }
     }
@@ -67,7 +64,7 @@ export function App() {
       clearInterval(interval);
       window.removeEventListener('focus', onFocus);
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!session) return;
@@ -75,12 +72,12 @@ export function App() {
       () => {
         setSession(null);
         setScenarios([]);
-        setMessage('Your session has expired. Sign in again.');
+        setMessage(t('sessionExpired'));
       },
       Math.max(0, session.expiresAt - Date.now()),
     );
     return () => clearTimeout(timer);
-  }, [session]);
+  }, [session, t]);
 
   async function localAction(path: string, body = {}) {
     setBusy(true);
@@ -94,7 +91,7 @@ export function App() {
         body: JSON.stringify(body),
       });
       if (!response.ok)
-        throw new Error('Sign-in action failed. Please try again.');
+        throw new Error(t('actionFailed'));
       window.location.assign('/');
     } catch (error) {
       setMessage((error as Error).message);
@@ -109,15 +106,13 @@ export function App() {
       <main className="setup-page">
         <div className="brand-mark">D</div>
         <p className="eyebrow">DIGITAL COMPLIANCE HUB</p>
-        <h1>Your demo workspace</h1>
+        <h1>{t('workspaceTitle')}</h1>
         <p role="status">{message}</p>
+        <label className="language-control">{t('language')}<select aria-label={t('language')} value={language} onChange={(event) => setLanguage(event.target.value as 'en' | 'uk')}><option value="en">{t('english')}</option><option value="uk">{t('ukrainian')}</option></select></label>
         {
           <section className="local-login">
-            <h2>Demo account sign-in</h2>
-            <p>
-              Choose any fictional account to explore the POC. No password or
-              Cloudflare login is required.
-            </p>
+            <h2>{t('demoSignIn')}</h2>
+            <p>{t('demoSignInHelp')}</p>
             {accounts.map((account) => (
               <button
                 className="button subtle"
@@ -129,15 +124,15 @@ export function App() {
                   })
                 }
               >
-                {account.name} · {account.role}
+                {account.name} · {t(account.role === 'client' ? 'roleClient' : account.role === 'manager' ? 'roleManager' : account.role === 'compliance' ? 'roleCompliance' : 'roleAdmin')}
               </button>
             ))}
             {!accounts.length && (
-              <p>Seed the demo database to load test accounts.</p>
+              <p>{t('seedAccounts')}</p>
             )}
           </section>
         }
-        <p className="footnote">POC · Synthetic data only</p>
+        <p className="footnote">{t('synthetic')}</p>
       </main>
     );
   if (session.role === 'demo-admin')
@@ -153,7 +148,7 @@ export function App() {
           Demo reset and administration tools will be added in a later phase.
         </p>
         <button className="button" onClick={logout}>
-          Sign out
+          {t('signOut')}
         </button>
       </main>
     );

@@ -160,6 +160,15 @@ test('complete correction workflow keeps internal notes private and snapshots fi
       (
         await post(`/api/cases/${created.id}/messages`, officer, {
           visibility: 'internal',
+          body: '   ',
+        })
+      ).status,
+      400,
+    );
+    assert.equal(
+      (
+        await post(`/api/cases/${created.id}/messages`, officer, {
+          visibility: 'internal',
           body: 'Invoice mismatch found',
         })
       ).status,

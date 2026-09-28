@@ -22,6 +22,17 @@ export function hostedConfig(input, environment) {
       'Supply real account, D1 and custom-hostname values in cloudflare.local.json',
     );
   }
+  const authMode = selected.authMode ?? 'demo';
+  if (!['demo', 'access'].includes(authMode))
+    throw new Error('authMode must be demo or access');
+  if (
+    authMode === 'access' &&
+    (!/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(
+      selected.accessIssuer ?? '',
+    ) ||
+      !/^[a-f0-9]{64}$/.test(selected.accessAudience ?? ''))
+  )
+    throw new Error('Access mode requires accessIssuer and accessAudience');
   return {
     $schema: './node_modules/wrangler/config-schema.json',
     name: `digital-compliance-hub-${environment}`,
@@ -39,6 +50,13 @@ export function hostedConfig(input, environment) {
     },
     vars: {
       APP_ORIGIN: `https://${selected.hostname}`,
+      AUTH_MODE: authMode,
+      ...(authMode === 'access'
+        ? {
+            ACCESS_ISSUER: selected.accessIssuer,
+            ACCESS_AUDIENCE: selected.accessAudience,
+          }
+        : {}),
     },
     d1_databases: [
       {

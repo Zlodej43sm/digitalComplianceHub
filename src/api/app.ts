@@ -11,6 +11,7 @@ import type { AppEnv, Authenticate } from './types.ts';
 import { mountCases } from './cases.ts';
 import { mountWorkflow } from './workflow.ts';
 import { mountAnalysis } from './analysis.ts';
+import { mountDashboard } from './dashboard.ts';
 
 export function createApp(
   authenticate: Authenticate = authenticateAccess,
@@ -18,6 +19,14 @@ export function createApp(
 ) {
   const app = new Hono<AppEnv>();
   app.use('*', secureHeaders());
+  app.use('*', async (c, next) => {
+    await next();
+    c.header(
+      'Content-Security-Policy',
+      "default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'",
+    );
+    c.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  });
   app.use('*', async (c, next) => {
     c.header('Cache-Control', 'no-store');
     if (!['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {
@@ -73,6 +82,7 @@ export function createApp(
   mountCases(app);
   mountWorkflow(app);
   mountAnalysis(app);
+  mountDashboard(app);
   app.notFound(async (c) => {
     if (!c.req.path.startsWith('/api') && c.env.ASSETS) {
       const asset = await c.env.ASSETS.fetch(c.req.raw);

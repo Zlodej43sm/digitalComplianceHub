@@ -1,6 +1,6 @@
 # POC Phase 5 — Simulated document analysis
 
-Status: implemented locally; hosted queues, migration/deployment and browser walkthrough pending. Depends on: Phase 4.
+Status: implemented and verified locally and in the hosted synthetic demo, including queues and migrations. Cloudflare Access is outside the current POC scope. Depends on: Phase 4.
 
 Goal: demonstrate how document assistance fits the review process, while clearly identifying all extraction and summary outputs as simulated.
 

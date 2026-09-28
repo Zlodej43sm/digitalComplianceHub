@@ -19,7 +19,13 @@
     "test": "node --test tests/*.test.*",
     "configure:cloudflare": "node scripts/cloudflare-config.mjs",
     "build:cloudflare": "node scripts/cloudflare-build.mjs",
-    "deploy:cloudflare": "node scripts/cloudflare-deploy.mjs"
+    "deploy:cloudflare": "node scripts/cloudflare-deploy.mjs",
+    "seed:scenarios": "node scripts/seed-demo-scenarios.mjs",
+    "backup:cloudflare": "node scripts/cloudflare-backup.mjs",
+    "restore:cloudflare": "node scripts/cloudflare-restore.mjs",
+    "reset:cloudflare": "node scripts/cloudflare-reset.mjs",
+    "smoke:hosted": "node scripts/hosted-smoke.mjs",
+    "release:check": "pnpm verify && node scripts/release-check.mjs"
   },
   "dependencies": {
     "hono": "4.13.9",

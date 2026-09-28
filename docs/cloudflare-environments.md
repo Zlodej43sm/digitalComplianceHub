@@ -2,6 +2,8 @@
 
 For the current phase, hosted and local builds use the same fictional account picker. Cloudflare Access, IdP login and MFA are not required. Anyone with the demo URL can select any of the five accounts. This mode is for synthetic demonstrations only; real bank authentication remains deferred.
 
+The code retains an optional `authMode: "access"` adapter for a future phase, but protected-host development and acceptance are excluded from Phases 1–7. The fictional picker is the active deployment mode.
+
 The account picker creates an opaque 30-minute session. Cookies are HttpOnly, SameSite=Strict and Secure on HTTPS. Server-side organization, staff-assignment and administrator restrictions remain enforced within the selected session. Same-origin mutation checks remain enabled. Page assets and the account list are public.
 
 ## Configuration

@@ -18,6 +18,7 @@ test('hosted configuration requires complete identifiers and disables public ali
   assert.equal(config.assets.run_worker_first, true);
   assert.equal(config.r2_buckets[0].jurisdiction, 'eu');
   assert.equal(config.vars.APP_ORIGIN, 'https://developer.example.com');
+  assert.equal(config.vars.AUTH_MODE, 'demo');
   assert.throws(() => hostedConfig({}, 'dev'));
   assert.throws(() => hostedConfig(input, 'production'));
   assert.throws(() => hostedConfig(input, 'demo'));
@@ -30,4 +31,8 @@ test('hosted configuration requires complete identifiers and disables public ali
   assert.throws(() =>
     hostedConfig({ ...input, dev: { ...input.dev, databaseId: null } }, 'dev'),
   );
+  assert.throws(() => hostedConfig({ ...input, dev: { ...input.dev, authMode: 'access' } }, 'dev'));
+  const protectedConfig = hostedConfig({ ...input, dev: { ...input.dev, authMode: 'access', accessIssuer: 'https://bank.cloudflareaccess.com', accessAudience: 'b'.repeat(64) } }, 'dev');
+  assert.equal(protectedConfig.vars.AUTH_MODE, 'access');
+  assert.equal(protectedConfig.vars.ACCESS_AUDIENCE, 'b'.repeat(64));
 });
