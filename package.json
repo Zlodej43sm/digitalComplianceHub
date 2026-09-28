@@ -1,0 +1,36 @@
+{
+  "name": "digital-compliance-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.4.0",
+  "engines": {
+    "node": ">=24.13.0 <25",
+    "pnpm": "11.4.0"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs",
+    "verify": "pnpm typecheck && pnpm build && pnpm smoke"
+  },
+  "dependencies": {
+    "hono": "4.13.9",
+    "lucide-react": "1.48.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "1.60.0",
+    "@types/node": "24.19.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "prettier": "3.9.9",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "wrangler": "4.139.0"
+  }
+}

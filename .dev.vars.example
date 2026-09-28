@@ -1,0 +1,2 @@
+# No Worker secrets are required in Phase 1.
+# Phase 2 will document real Access configuration. Never commit .dev.vars.
