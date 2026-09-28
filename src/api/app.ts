@@ -8,6 +8,7 @@ import {
   resolveSession,
 } from './authorization.ts';
 import type { AppEnv, Authenticate } from './types.ts';
+import { mountCases } from './cases.ts';
 
 export function createApp(
   authenticate: Authenticate = authenticateAccess,
@@ -67,6 +68,7 @@ export function createApp(
         })
       : c.json({ error: 'Administration access denied' }, 403),
   );
+  mountCases(app);
   app.notFound(async (c) => {
     if (!c.req.path.startsWith('/api') && c.env.ASSETS) {
       const asset = await c.env.ASSETS.fetch(c.req.raw);

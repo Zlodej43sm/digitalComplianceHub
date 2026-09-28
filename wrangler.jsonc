@@ -12,6 +12,7 @@
       "migrations_dir": "migrations",
     },
   ],
+  "r2_buckets": [{ "binding": "DOCUMENTS", "bucket_name": "dch-local-documents" }],
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",

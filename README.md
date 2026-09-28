@@ -12,7 +12,9 @@ rtk pnpm dev
 
 Open http://127.0.0.1:5178. Requires Node.js 24 and pnpm 11.4.0.
 
-Northstar client, manager and compliance see three read-only outlines. Cedar client has an empty, separate organization. Demo administrator has no business-data access. Sessions expire after 30 minutes; sign out to change accounts. No uploads or review decisions are implemented yet.
+Clients can create persistent drafts, upload only the supplied synthetic PDF fixtures, retain immutable versions, download authorized versions, and submit a package. Manager/compliance workflow decisions arrive in Phase 4. Cedar remains isolated from Northstar, and the demo administrator has no business-data access.
+
+Fixture files are in `fixtures/documents/`. Only their exact approved bytes are accepted; arbitrary or renamed PDFs are rejected. Each case is limited to 10 versions and each file to 10 MB.
 
 Server roles, organization scope, CSRF protections and expiring HttpOnly cookies remain in place. HTTPS cookies are Secure. Account selection is a demo convenience, not verified identity. Only synthetic content belongs in this POC.
 

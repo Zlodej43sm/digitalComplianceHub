@@ -1,6 +1,6 @@
 # POC Phase 3 — Client cases and private documents
 
-Status: not started. Depends on: Phase 2. Estimate: 2–3 engineering days.
+Status: implemented locally; hosted migration/deployment and browser walkthrough pending. Depends on: Phase 2.
 
 Goal: a client can create, populate and submit a persistent case using the supplied synthetic files.
 

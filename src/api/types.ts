@@ -9,6 +9,20 @@ export interface Statement {
 }
 export interface Database {
   prepare(sql: string): Statement;
+  batch?(statements: Statement[]): Promise<unknown[]>;
+}
+export interface ObjectBody {
+  body: ReadableStream;
+  httpEtag?: string;
+}
+export interface ObjectStore {
+  put(
+    key: string,
+    value: ArrayBuffer | Uint8Array,
+    options?: unknown,
+  ): Promise<unknown>;
+  get(key: string): Promise<ObjectBody | null>;
+  delete(key: string): Promise<void>;
 }
 export interface Bindings {
   DB: Database;
@@ -16,6 +30,7 @@ export interface Bindings {
   ACCESS_ISSUER?: string;
   ACCESS_AUDIENCE?: string;
   APP_ORIGIN?: string;
+  DOCUMENTS?: ObjectStore;
 }
 export interface Identity {
   issuer: string;

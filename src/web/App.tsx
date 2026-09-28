@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Session } from '../contracts/session';
 import type { PreviewCase } from '../../fixtures/scenarios';
 import { PreviewApp } from './PreviewApp';
+import { ClientCases } from './ClientCases';
 
 async function read<T>(path: string): Promise<T> {
   const response = await fetch(path, { cache: 'no-store' });
@@ -155,6 +156,8 @@ export function App() {
         </button>
       </main>
     );
+  if (session.role === 'client')
+    return <ClientCases session={session} onLogout={logout} />;
   return (
     <PreviewApp session={session} scenarios={scenarios} onLogout={logout} />
   );
