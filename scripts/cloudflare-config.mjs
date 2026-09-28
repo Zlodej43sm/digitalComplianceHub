@@ -11,10 +11,6 @@ export function hostedConfig(input, environment) {
     !/^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(
       selected.databaseId ?? '',
     ) ||
-    !/^[a-f0-9]{64}$/.test(selected.accessAudience ?? '') ||
-    !/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(
-      input.accessIssuer ?? '',
-    ) ||
     !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/.test(
       selected.hostname ?? '',
     ) ||
@@ -23,7 +19,7 @@ export function hostedConfig(input, environment) {
     )
   ) {
     throw new Error(
-      'Supply real account, D1, Access and custom-hostname values in cloudflare.local.json',
+      'Supply real account, D1 and custom-hostname values in cloudflare.local.json',
     );
   }
   return {
@@ -43,8 +39,6 @@ export function hostedConfig(input, environment) {
     },
     vars: {
       APP_ORIGIN: `https://${selected.hostname}`,
-      ACCESS_ISSUER: input.accessIssuer,
-      ACCESS_AUDIENCE: selected.accessAudience,
     },
     d1_databases: [
       {

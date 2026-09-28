@@ -55,12 +55,11 @@ export function App() {
     const interval = window.setInterval(() => void refresh(), 30_000);
     const onFocus = () => void refresh();
     window.addEventListener('focus', onFocus);
-    if (import.meta.env.DEV)
-      void read<typeof accounts>('/api/local/accounts')
-        .then((value) => {
-          if (active) setAccounts(value);
-        })
-        .catch(() => {});
+    void read<typeof accounts>('/api/local/accounts')
+      .then((value) => {
+        if (active) setAccounts(value);
+      })
+      .catch(() => {});
     return () => {
       active = false;
       clearInterval(interval);
@@ -101,22 +100,21 @@ export function App() {
     }
   }
   function logout() {
-    if (import.meta.env.DEV) void localAction('/api/local/logout');
-    else window.location.assign('/cdn-cgi/access/logout');
+    void localAction('/api/local/logout');
   }
   if (!session)
     return (
       <main className="setup-page">
         <div className="brand-mark">D</div>
         <p className="eyebrow">DIGITAL COMPLIANCE HUB</p>
-        <h1>Your secure workspace</h1>
+        <h1>Your demo workspace</h1>
         <p role="status">{message}</p>
-        {import.meta.env.DEV ? (
+        {
           <section className="local-login">
-            <h2>Local test sign-in</h2>
+            <h2>Demo account sign-in</h2>
             <p>
-              Fictional accounts for permission testing. Hosted MFA is
-              configured separately.
+              Choose any fictional account to explore the POC. No password or
+              Cloudflare login is required.
             </p>
             {accounts.map((account) => (
               <button
@@ -133,14 +131,10 @@ export function App() {
               </button>
             ))}
             {!accounts.length && (
-              <p>Run local database setup to load test accounts.</p>
+              <p>Seed the demo database to load test accounts.</p>
             )}
           </section>
-        ) : (
-          <a className="button" href="/cdn-cgi/access/login">
-            Sign in through Cloudflare Access
-          </a>
-        )}
+        }
         <p className="footnote">POC · Synthetic data only</p>
       </main>
     );

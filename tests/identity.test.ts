@@ -428,3 +428,90 @@ test('authenticated assets support immutable upstream response headers', async (
     sql.close();
   }
 });
+
+test('hosted demo uses the same accounts with Secure cookies and canonical-host checks', async () => {
+  const { sql, env } = database();
+  const hostedOrigin = 'https://demo.example.com';
+  const hostedEnv = { ...env, APP_ORIGIN: hostedOrigin };
+  const app = createLocalApp(true);
+  try {
+    const accounts = await app.request(
+      hostedOrigin + '/api/local/accounts',
+      {},
+      hostedEnv,
+    );
+    assert.equal(accounts.status, 200);
+    assert.equal((await accounts.json()).length, 5);
+    const login = await app.request(
+      hostedOrigin + '/api/local/session',
+      {
+        method: 'POST',
+        headers: { ...mutationHeaders, Origin: hostedOrigin },
+        body: JSON.stringify({ accountId: 'client-cedar' }),
+      },
+      hostedEnv,
+    );
+    assert.equal(login.status, 200);
+    const cookie = login.headers.get('set-cookie')!;
+    assert.match(cookie, /Secure/);
+    assert.match(cookie, /HttpOnly/);
+    const headers = { Cookie: cookie.split(';')[0]! };
+    const workspace = await app.request(
+      hostedOrigin + '/api/workspace',
+      { headers },
+      hostedEnv,
+    );
+    assert.equal(workspace.status, 200);
+    assert.equal((await workspace.json()).scenarios.length, 0);
+    assert.equal(
+      (
+        await app.request(
+          hostedOrigin + '/api/workspace?organizationId=org-northstar',
+          { headers },
+          hostedEnv,
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (
+        await app.request(
+          'https://other.example.com/api/local/accounts',
+          {},
+          hostedEnv,
+        )
+      ).status,
+      404,
+    );
+    assert.equal(
+      (
+        await app.request(
+          'https://other.example.com/api/me',
+          { headers },
+          hostedEnv,
+        )
+      ).status,
+      401,
+    );
+    assert.equal(
+      (
+        await app.request(
+          hostedOrigin + '/api/local/logout',
+          {
+            method: 'POST',
+            headers: {
+              ...mutationHeaders,
+              Origin: 'https://other.example.com',
+              ...headers,
+            },
+            body: '{}',
+          },
+          hostedEnv,
+        )
+      ).status,
+      403,
+    );
+  } finally {
+    sql.close();
+  }
+});

@@ -2,6 +2,10 @@
 
 Updated 28 September 2026 · POC only. Phase 1 is complete. Phase 2 identity and permissions are implemented and locally verified; its hosted gate is pending. Phases 3–7 are not started. The application is not deployed to Cloudflare. See the [local setup](../README.md) and [Phase 1 verification](phase-1-verification.md).
 
+## Current phase amendment
+
+User-directed change: the current hosted POC uses the same public fictional-account picker as local development. Access/IdP/MFA and invite-only release requirements below are deferred; they describe the earlier plan and future real-identity work. Server-side selected-session permissions remain enforced. See [current Phase 2 scope](poc-phases/02-identity-and-cloudflare.md).
+
 ## 1. What the demo must prove
 
 A corporate client submits a document package; a manager checks completeness; a compliance officer finds a discrepancy and requests a correction; the client uploads a new version; staff complete the review; every participant sees the appropriate status and history.

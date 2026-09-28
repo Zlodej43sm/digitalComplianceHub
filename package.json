@@ -13,7 +13,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "smoke": "node scripts/smoke.mjs",
+    "smoke": "pnpm setup:local && node scripts/smoke.mjs",
     "verify": "pnpm typecheck && pnpm test && pnpm build && pnpm smoke",
     "setup:local": "wrangler d1 migrations apply dch-local-metadata --local && wrangler d1 execute dch-local-metadata --local --file seeds/local.sql",
     "test": "node --test tests/*.test.*",

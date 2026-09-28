@@ -1,14 +1,11 @@
 {
   "accountId": "553878c9e71a01ea2291072d4acdf52a",
-  "accessIssuer": "https://red-water-7bee.cloudflareaccess.com",
   "dev": {
     "hostname": null,
-    "databaseId": null,
-    "accessAudience": null
+    "databaseId": null
   },
   "demo": {
     "hostname": "dch.cooptinyteam.org",
-    "databaseId": "e00d7dd6-01cf-4613-bc8d-f6311ceda9e8",
-    "accessAudience": "ededaf56a2af5760bccddeb86184795eb5b7c5042f6d6c131b725bc6989e019b"
+    "databaseId": "e00d7dd6-01cf-4613-bc8d-f6311ceda9e8"
   }
 }

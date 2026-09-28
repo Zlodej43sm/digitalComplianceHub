@@ -5,14 +5,14 @@ import { hostedConfig } from '../scripts/cloudflare-config.mjs';
 test('hosted configuration requires complete identifiers and disables public aliases', () => {
   const input = {
     accountId: 'a'.repeat(32),
-    accessIssuer: 'https://test.cloudflareaccess.com',
     dev: {
       hostname: 'developer.example.com',
       databaseId: '12345678-1234-1234-1234-123456789abc',
-      accessAudience: 'b'.repeat(64),
     },
   };
   const config = hostedConfig(input, 'dev');
+  assert.equal(config.vars.ACCESS_ISSUER, undefined);
+  assert.equal(config.vars.ACCESS_AUDIENCE, undefined);
   assert.equal(config.workers_dev, false);
   assert.equal(config.preview_urls, false);
   assert.equal(config.assets.run_worker_first, true);

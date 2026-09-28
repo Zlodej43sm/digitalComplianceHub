@@ -1,3 +1,13 @@
+# Hosted POC update
+
+Deployed Worker version `6482960c-229c-42e9-a906-9ff8a29c8d2a` to `dch.cooptinyteam.org` with the demo account picker. Seeded five separate `demo-*` identities, preserving the existing Access-backed admin. All eight test groups passed. Compiled demo-session HTTP checks are part of `pnpm verify`.
+
+Remaining external blocker: the hostname still redirects to Cloudflare Access. The authenticated zone-level Access applications API returned HTTP 403 (authentication error). No edge policy was modified. The account-level applications listing was empty. Remove this hostname's Access protection using a credential with the appropriate Access permissions or the Zero Trust dashboard; then repeat the hosted walkthrough.
+
+# Current scope change
+
+Hosted builds now include the fictional-account picker, as requested. The previous Access-only build boundary below is historical and superseded. HTTPS session tests cover Secure cookies, canonical host, role isolation and CSRF. Live deployment/edge-policy changes are separate from these local code checks.
+
 # Phase 2 verification record
 
 28 September 2026. Local implementation verified; hosted completion gate open.

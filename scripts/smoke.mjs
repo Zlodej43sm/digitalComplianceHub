@@ -59,12 +59,45 @@ try {
     '/api/unknown',
     '/api/cases',
     '/api/me',
-    '/api/local/accounts',
     '/api/workspace',
   ]) {
     const response = await fetch(`${origin}${path}`);
     assert.equal(response.status, 401, path);
     assert.deepEqual(await response.json(), { error: 'Sign-in required' });
+  }
+  const accountResponse = await fetch(`${origin}/api/local/accounts`);
+  assert.equal(accountResponse.status, 200);
+  const accounts = await accountResponse.json();
+  assert.equal(accounts.length, 5);
+  for (const account of accounts) {
+    const headers = {
+      Origin: origin,
+      'Content-Type': 'application/json',
+      'X-CSRF-Protection': '1',
+    };
+    const login = await fetch(`${origin}/api/local/session`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ accountId: account.id }),
+    });
+    assert.equal(login.status, 200);
+    const Cookie = login.headers.get('set-cookie').split(';')[0];
+    const me = await fetch(`${origin}/api/me`, { headers: { Cookie } });
+    assert.equal((await me.json()).userId, account.id);
+    const workspace = await fetch(`${origin}/api/workspace`, {
+      headers: { Cookie },
+    });
+    assert.equal(workspace.status, account.role === 'demo-admin' ? 403 : 200);
+    const logout = await fetch(`${origin}/api/local/logout`, {
+      method: 'POST',
+      headers: { ...headers, Cookie },
+      body: '{}',
+    });
+    assert.equal(logout.status, 200);
+    assert.equal(
+      (await fetch(`${origin}/api/me`, { headers: { Cookie } })).status,
+      401,
+    );
   }
   const mutation = await fetch(`${origin}/api/health`, { method: 'POST' });
   assert.equal(mutation.status, 403);
@@ -78,12 +111,10 @@ try {
     const response = await fetch(`${origin}${path}`, {
       headers: { Accept: 'text/html' },
     });
-    assert.equal(response.status, 401, path);
-    assert.equal(response.headers.get('cache-control'), 'no-store');
-    assert.deepEqual(await response.json(), { error: 'Sign-in required' });
+    assert.equal(response.status, 200, path);
   }
   console.log(
-    'Smoke passed: health, no-store, protected APIs/assets, blocked local sign-in and rejected cross-origin mutation.',
+    'Smoke passed: health, no-store, protected APIs, public demo shell and rejected cross-origin mutation.',
   );
 } catch (error) {
   console.error(output);

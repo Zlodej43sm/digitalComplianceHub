@@ -1,6 +1,11 @@
 {
   "accountId": null,
-  "accessIssuer": null,
-  "dev": { "hostname": null, "databaseId": null, "accessAudience": null },
-  "demo": { "hostname": null, "databaseId": null, "accessAudience": null }
+  "dev": {
+    "hostname": null,
+    "databaseId": null
+  },
+  "demo": {
+    "hostname": null,
+    "databaseId": null
+  }
 }

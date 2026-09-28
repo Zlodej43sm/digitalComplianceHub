@@ -1,6 +1,6 @@
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { createApp } from '../../api/app.ts';
-import type { Authenticate } from '../../api/types.ts';
+import type { Authenticate, Bindings } from '../../api/types.ts';
 
 const cookieName = 'dch_local_session';
 export async function hashToken(token: string): Promise<string> {
@@ -12,33 +12,36 @@ export async function hashToken(token: string): Promise<string> {
     byte.toString(16).padStart(2, '0'),
   ).join('');
 }
-function localHost(request: Request) {
+function localHost(request: Request, env: Bindings, allowHosted: boolean) {
   const url = new URL(request.url);
+  if (allowHosted && url.protocol === 'https:' && url.origin === env.APP_ORIGIN)
+    return true;
   return (
     url.protocol === 'http:' &&
     ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)
   );
 }
-const authenticateLocal: Authenticate = async (request, env) => {
-  if (!localHost(request)) return null;
-  const token = request.headers
-    .get('Cookie')
-    ?.split(';')
-    .map((s) => s.trim())
-    .find((s) => s.startsWith(`${cookieName}=`))
-    ?.slice(cookieName.length + 1);
-  if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
-  return env.DB.prepare(
-    `SELECT u.issuer, u.subject, s.expires_at AS expiresAt FROM local_sessions s
+export function createLocalApp(allowHosted = false) {
+  const authenticateLocal: Authenticate = async (request, env) => {
+    if (!localHost(request, env, allowHosted)) return null;
+    const token = request.headers
+      .get('Cookie')
+      ?.split(';')
+      .map((s) => s.trim())
+      .find((s) => s.startsWith(`${cookieName}=`))
+      ?.slice(cookieName.length + 1);
+    if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
+    return env.DB.prepare(
+      `SELECT u.issuer, u.subject, s.expires_at AS expiresAt FROM local_sessions s
     JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ? AND u.issuer = 'urn:dch:local'`,
-  )
-    .bind(await hashToken(token), Date.now())
-    .first<{ issuer: string; subject: string; expiresAt: number }>();
-};
-export function createLocalApp() {
+    )
+      .bind(await hashToken(token), Date.now())
+      .first<{ issuer: string; subject: string; expiresAt: number }>();
+  };
   const app = createApp(authenticateLocal, 'local');
   app.use('/api/local/*', async (c, next) => {
-    if (!localHost(c.req.raw)) return c.json({ error: 'Not found' }, 404);
+    if (!localHost(c.req.raw, c.env, allowHosted))
+      return c.json({ error: 'Not found' }, 404);
     await next();
   });
   app.get('/api/local/accounts', async (c) =>
@@ -82,6 +85,7 @@ export function createLocalApp() {
       .bind(await hashToken(token), user.id, Date.now() + 30 * 60_000)
       .run();
     setCookie(c, cookieName, token, {
+      secure: new URL(c.req.url).protocol === 'https:',
       httpOnly: true,
       sameSite: 'Strict',
       path: '/',
@@ -97,6 +101,7 @@ export function createLocalApp() {
         .run();
     deleteCookie(c, cookieName, {
       path: '/',
+      secure: new URL(c.req.url).protocol === 'https:',
       httpOnly: true,
       sameSite: 'Strict',
     });

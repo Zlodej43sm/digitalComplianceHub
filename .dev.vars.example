@@ -1,3 +1,3 @@
-# No local secrets are required. Local identities use seeded D1 records.
-# Hosted ACCESS_ISSUER, ACCESS_AUDIENCE and APP_ORIGIN are nonsecret Worker vars
-# generated from cloudflare.local.json. Never store API tokens in this file.
+# No local secrets are required. Demo accounts use seeded D1 records.
+# Hosted APP_ORIGIN is generated from Cloudflare configuration.
+# Cloudflare Access issuer/audience are not used by this POC entry point.

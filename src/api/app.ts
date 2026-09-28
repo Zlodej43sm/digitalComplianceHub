@@ -30,7 +30,7 @@ export function createApp(
     c.json({ status: 'ok', service: 'digital-compliance-hub' }),
   );
   app.use('*', async (c, next) => {
-    // Only the separately compiled development app mounts local login routes.
+    // The demo adapter exposes account selection before session authentication.
     if (mode === 'local' && c.req.path.startsWith('/api/local/')) return next();
     if (mode === 'local' && !c.req.path.startsWith('/api')) return next();
     const identity = await authenticate(c.req.raw, c.env);

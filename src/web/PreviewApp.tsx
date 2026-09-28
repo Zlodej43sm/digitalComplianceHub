@@ -200,9 +200,7 @@ export function PreviewApp({
           <div className="preview-controls">
             <span className="preview-pill">
               <span />
-              {session.mode === 'local'
-                ? 'Local test session'
-                : 'Verified session'}
+              {session.mode === 'local' ? 'Demo session' : 'Verified session'}
             </span>
             <button className="button subtle" onClick={onLogout}>
               Sign out
@@ -401,9 +399,8 @@ export function PreviewApp({
                 <LockKeyhole size={18} />
                 <p>
                   Your role and organization access come from server records.
-                  Test-account sign-in is available only during development;
-                  hosted access requires Cloudflare Access and an invited
-                  account.
+                  Anyone with the demo link can choose a fictional account. This
+                  POC contains synthetic data only.
                 </p>
               </section>
             </>

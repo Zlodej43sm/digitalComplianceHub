@@ -12,8 +12,8 @@ export function verifyBuild(
     'urn:dch:local',
   ]) {
     assert.ok(
-      !worker.includes(marker),
-      `Production Worker contains development identity: ${marker}`,
+      worker.includes(marker),
+      `POC Worker is missing demo identity: ${marker}`,
     );
   }
   const config = JSON.parse(
@@ -24,25 +24,20 @@ export function verifyBuild(
   assert.equal(
     config.assets.run_worker_first,
     true,
-    'All deployed assets must pass authentication',
+    'All API routing stays in the Worker',
   );
   for (const file of readdirSync('dist/client/assets').filter((file) =>
     file.endsWith('.js'),
   )) {
     const content = readFileSync(`dist/client/assets/${file}`, 'utf8');
-    for (const marker of [
-      '/api/local/',
-      'Local test sign-in',
-      'FX-2026-001',
-      'Equipment supply agreement',
-    ]) {
+    for (const marker of ['FX-2026-001', 'Equipment supply agreement']) {
       assert.ok(
         !content.includes(marker),
-        `Production browser bundle exposes local sign-in or case fixtures: ${marker}`,
+        `Browser bundle exposes case fixtures: ${marker}`,
       );
     }
   }
   console.log(
-    'Production boundary passed: no local sign-in or bundled case data; all assets use the Worker.',
+    'POC build passed: demo sign-in included; case data remains server-scoped.',
   );
 }
