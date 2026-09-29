@@ -45,12 +45,53 @@ async function managerReview(manager, caseId) {
   }
 }
 
+async function startManagerReview(manager, caseId) {
+  const detail = await json(`/api/cases/${caseId}`, manager);
+  if (detail.case.status === 'Submitted')
+    await json(`/api/cases/${caseId}/manager/start`, manager, 'POST', {
+      revision: detail.case.revision,
+    });
+}
+
+async function requestManagerChanges(manager, caseId, message) {
+  await startManagerReview(manager, caseId);
+  const detail = await json(`/api/cases/${caseId}`, manager);
+  if (detail.case.status === 'ManagerReview')
+    await json(`/api/cases/${caseId}/manager/request-changes`, manager, 'POST', {
+      revision: detail.case.revision,
+      message,
+    });
+}
+
+async function decide(compliance, caseId, outcome, reason) {
+  const detail = await json(`/api/cases/${caseId}`, compliance);
+  if (detail.case.status === 'ComplianceReview')
+    await json(`/api/cases/${caseId}/compliance/decision`, compliance, 'POST', {
+      revision: detail.case.revision,
+      outcome,
+      reason,
+    });
+}
+
 const client = await session('client-northstar'), manager = await session('manager'), compliance = await session('compliance');
-await create(client, 'Demo · Missing documents', 1200000);
-const discrepancy = await prepareSubmitted(client, 'Demo · Amount discrepancy', 'invoice-v1.pdf', 1250000);
+await create(client, 'Demo 01 · Draft package', 1200000);
+await prepareSubmitted(client, 'Demo 02 · Submitted package', 'invoice-v2.pdf', 1200000);
+
+const activeManager = await prepareSubmitted(client, 'Demo 03 · Manager review', 'invoice-v2.pdf', 1200000);
+await startManagerReview(manager, activeManager);
+
+const missing = await prepareSubmitted(client, 'Demo 04 · Missing-document correction', 'invoice-v1.pdf', 1250000);
+await requestManagerChanges(manager, missing, 'Please provide a corrected and complete document package.');
+
+const discrepancy = await prepareSubmitted(client, 'Demo 05 · Compliance amount discrepancy', 'invoice-v1.pdf', 1250000);
 await managerReview(manager, discrepancy);
-const complete = await prepareSubmitted(client, 'Demo · Completed approval', 'invoice-v2.pdf', 1200000);
+
+const complete = await prepareSubmitted(client, 'Demo 06 · Approved package', 'invoice-v2.pdf', 1200000);
 await managerReview(manager, complete);
-const completeDetail = await json(`/api/cases/${complete}`, compliance);
-if (completeDetail.case.status === 'ComplianceReview') await json(`/api/cases/${complete}/compliance/decision`, compliance, 'POST', { revision: completeDetail.case.revision, outcome: 'Approved', reason: 'Synthetic documents match; approved for the deterministic demo.' });
-console.log(`Seeded Phase 6 scenarios at ${origin}: missing documents, discrepancy review and completed approval.`);
+await decide(compliance, complete, 'Approved', 'Synthetic documents match; approved for the deterministic demo.');
+
+const rejected = await prepareSubmitted(client, 'Demo 07 · Rejected package', 'invoice-v1.pdf', 1250000);
+await managerReview(manager, rejected);
+await decide(compliance, rejected, 'Rejected', 'Synthetic package rejected because the documented amount remains inconsistent.');
+
+console.log(`Seeded canonical role/status scenarios at ${origin}: Draft, Submitted, ManagerReview, AwaitingClient, ComplianceReview, Approved and Rejected.`);

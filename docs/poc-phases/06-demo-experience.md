@@ -33,6 +33,6 @@ This phase polishes working screens. It does not add a reporting warehouse, regu
 
 Completion gate: a second person can follow the walkthrough and explain its result. Record usability issues separately from optional new features; fix issues that prevent the demo before release.
 
-Implemented artifacts: the scoped `/api/dashboard` summary, role-specific bilingual workspaces, safe `#case=` deep links, deterministic `pnpm seed:scenarios` bootstrap and the [eight-minute walkthrough](../demo-walkthrough.md). Pending cases are excluded from completed-turnaround calculations.
+Implemented artifacts: the scoped `/api/dashboard` summary, role-specific bilingual workspaces, safe `#case=` deep links, deterministic seven-status `pnpm seed:scenarios` bootstrap and the [eight-minute walkthrough](../demo-walkthrough.md). Pending cases are excluded from completed-turnaround calculations.
 
 Next: [Phase 7](07-verification-and-release.md). Overall scope: [POC plan](../cloudflare-poc-plan.md).

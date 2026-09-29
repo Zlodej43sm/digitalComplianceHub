@@ -39,7 +39,7 @@ For a new environment, create `dch-ENV-metadata` with D1 `--jurisdiction eu` and
 ## Acceptance checks
 
 1. Open the hostname signed out: the fictional account picker appears without Cloudflare login.
-2. Select each account. Northstar, manager and compliance see three outlines; Cedar sees none; admin has a separate shell.
+2. Select each account. Northstar, manager and compliance see the canonical seven-case dataset across all workflow states; Cedar sees none; admin has a separate shell.
 3. Try another organization's API query: denied. No-session business API requests return 401.
 4. Sign out and reuse the old session cookie: denied. Verify Secure, HttpOnly and SameSite on hosted cookies.
 5. Cross-origin login/logout requests fail; static assets load without a session.

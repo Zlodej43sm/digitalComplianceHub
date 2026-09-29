@@ -1,6 +1,6 @@
 # Eight-minute customer demonstration
 
-Use only synthetic fixture documents. Run `rtk pnpm seed:scenarios http://127.0.0.1:5178` after local setup, or pass the explicitly authorized hosted POC origin. The command is idempotent by scenario title.
+Use only synthetic fixture documents. Run `rtk pnpm seed:scenarios http://127.0.0.1:5178` after local setup, or pass the explicitly authorized hosted POC origin. The command is idempotent by scenario title and creates one case in each workflow status: Draft, Submitted, ManagerReview, AwaitingClient, ComplianceReview, Approved and Rejected.
 
 ## 0:00–1:00 — Orientation
 
@@ -8,7 +8,7 @@ Open the Northstar client account. Point out the synthetic-data banner, language
 
 ## 1:00–2:30 — Client action
 
-Open **Demo · Missing documents**. Explain the empty document state and disabled submission path. Create a fresh case, upload only the supplied fixtures and submit it. Do not upload customer or bank data.
+Open **Demo 01 · Draft package**. Explain the empty document state and disabled submission path. Create a fresh case, upload only the supplied fixtures and submit it. Do not upload customer or bank data.
 
 ## 2:30–4:00 — Manager control
 
@@ -16,7 +16,7 @@ Sign in as Alex Morgan. Open the submitted case from the assigned queue, start r
 
 ## 4:00–5:30 — Assisted review
 
-Sign in as Jamie Taylor and open **Demo · Amount discrepancy**. Show source-page evidence, the human-review warning and the explicit statement that simulated analysis cannot decide a case. Send the suggested correction request.
+Sign in as Jamie Taylor and open **Demo 05 · Compliance amount discrepancy**. Show source-page evidence, the human-review warning and the explicit statement that simulated analysis cannot decide a case. Send the suggested correction request.
 
 ## 5:30–6:30 — Correction loop
 
