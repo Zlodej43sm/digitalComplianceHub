@@ -32,16 +32,28 @@ export async function processAnalysis(env: Bindings, message: AnalysisMessage) {
   try {
     const versions = (
       await env.DB.prepare(
-        `SELECT v.id,v.sha256,d.kind FROM document_versions v JOIN documents d ON d.id=v.document_id WHERE v.case_id=? AND v.version=(SELECT MAX(v2.version) FROM document_versions v2 WHERE v2.document_id=v.document_id) ORDER BY d.kind`,
+        `SELECT v.id,v.sha256,v.uploaded_at,d.kind FROM document_versions v JOIN documents d ON d.id=v.document_id WHERE v.case_id=? AND v.version=(SELECT MAX(v2.version) FROM document_versions v2 WHERE v2.document_id=v.document_id) ORDER BY d.kind`,
       )
         .bind(job.case_id)
         .all<any>()
     ).results;
-    const fields = versions.map((v) => extractFixture(v.sha256));
+    const caseRow: any = await env.DB.prepare(
+      'SELECT currency,amount_minor FROM cases WHERE id=?',
+    )
+      .bind(job.case_id)
+      .first();
+    const fallbackFor = (v: any) => ({
+      kind: v.kind,
+      amountMinor: caseRow.amount_minor,
+      currency: caseRow.currency,
+      parties: ['Client organization', 'Counterparty (unverified)'],
+      documentDate: String(v.uploaded_at).slice(0, 10),
+      page: 1,
+    });
+    const fields = versions.map((v) => extractFixture(v.sha256, fallbackFor(v)));
     const result = compareFixtures(fields),
-      focus = extractFixture(
-        (versions.find((v) => v.id === job.version_id) ?? versions[0]).sha256,
-      );
+      focusVersion = versions.find((v) => v.id === job.version_id) ?? versions[0],
+      focus = extractFixture(focusVersion.sha256, fallbackFor(focusVersion));
     await env.DB.prepare(
       'INSERT INTO analysis_results VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(job_id) DO NOTHING',
     )

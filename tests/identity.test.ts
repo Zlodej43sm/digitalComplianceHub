@@ -146,7 +146,8 @@ test('D1 schema prevents cross-bank membership and resolves only explicit assign
       );
       assert.equal(
         canReadOrganization(session, 'bank-demo', 'org-cedar'),
-        subject === 'client-cedar',
+        subject === 'client-cedar' ||
+          ['manager', 'compliance'].includes(subject),
       );
     }
     assert.equal(
@@ -249,15 +250,16 @@ test('real session routes enforce roles, tenant isolation, CSRF, revocation and 
           (await workspace.json()).scenarios.length,
           account === 'client-cedar' ? 0 : 3,
         );
-      const forbiddenOrg =
+      // Staff now cover both orgs; only clients stay pinned to their own.
+      const otherOrg =
         account === 'client-cedar' ? 'org-northstar' : 'org-cedar';
       assert.equal(
         (
-          await request(`/api/workspace?organizationId=${forbiddenOrg}`, {
+          await request(`/api/workspace?organizationId=${otherOrg}`, {
             headers: { Cookie },
           })
         ).status,
-        403,
+        ['manager', 'compliance'].includes(account) ? 200 : 403,
       );
       assert.equal(
         (await request('/api/admin', { headers: { Cookie } })).status,

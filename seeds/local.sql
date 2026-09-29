@@ -13,4 +13,5 @@ INSERT OR IGNORE INTO memberships VALUES
  ('compliance','bank-demo','compliance',NULL),
  ('admin','bank-demo','demo-admin',NULL);
 INSERT OR IGNORE INTO staff_assignments VALUES
- ('manager','bank-demo','org-northstar'), ('compliance','bank-demo','org-northstar');
+ ('manager','bank-demo','org-northstar'), ('compliance','bank-demo','org-northstar'),
+ ('manager','bank-demo','org-cedar'), ('compliance','bank-demo','org-cedar');

@@ -7,8 +7,9 @@ export interface ExtractedFixture {
   parties: string[];
   documentDate: string;
   page: number;
+  recognized: boolean;
 }
-const extracted: Record<string, ExtractedFixture> = {
+const extracted: Record<string, Omit<ExtractedFixture, 'recognized'>> = {
   [fixturePolicy['contract.pdf'].sha256]: {
     kind: 'contract',
     amountMinor: 1200000,
@@ -34,10 +35,14 @@ const extracted: Record<string, ExtractedFixture> = {
     page: 1,
   },
 };
-export function extractFixture(hash: string) {
+export function extractFixture(
+  hash: string,
+  fallback: Omit<ExtractedFixture, 'recognized'>,
+): ExtractedFixture {
   const value = extracted[hash];
-  if (!value) throw new Error('Fixture hash is not supported');
-  return value;
+  return value
+    ? { ...value, recognized: true }
+    : { ...fallback, recognized: false };
 }
 export function compareFixtures(values: ExtractedFixture[]) {
   const contract = values.find((v) => v.kind === 'contract'),
@@ -47,19 +52,23 @@ export function compareFixtures(values: ExtractedFixture[]) {
     findings.push({
       code: 'amount-mismatch',
       severity: 'warning',
-      message: `Contract EUR ${(contract.amountMinor / 100).toFixed(2)} differs from invoice EUR ${(invoice.amountMinor / 100).toFixed(2)}.`,
+      message: `Contract ${contract.currency} ${(contract.amountMinor / 100).toFixed(2)} differs from invoice ${invoice.currency} ${(invoice.amountMinor / 100).toFixed(2)}.`,
       sources: [
         { kind: 'contract', page: contract.page },
         { kind: 'invoice', page: invoice.page },
       ],
     });
+  const unrecognized = values.some((v) => !v.recognized);
   return {
     findings,
     summary: findings.length
       ? 'A document amount mismatch requires human review.'
-      : 'No predefined fixture discrepancy was detected.',
-    suggestedRequest: findings.length
-      ? 'Please provide a corrected invoice matching the contract amount of EUR 12,000.00.'
-      : '',
+      : unrecognized
+        ? 'No predefined fixture data is available for one or more files; showing the case-declared amount and currency as a simulated placeholder.'
+        : 'No predefined fixture discrepancy was detected.',
+    suggestedRequest:
+      findings.length && contract
+        ? `Please provide a corrected invoice matching the contract amount of ${contract.currency} ${(contract.amountMinor / 100).toFixed(2)}.`
+        : '',
   };
 }

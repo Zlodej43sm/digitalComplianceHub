@@ -1,11 +1,18 @@
 import type { Hono } from 'hono';
 import type { AppEnv } from './types.ts';
 import { canReadOrganization } from './authorization.ts';
-import { fixturePolicy } from './fixture-policy.ts';
 import { processAnalysis } from './analysis.ts';
 
 const now = () => new Date().toISOString();
 const id = (prefix: string) => `${prefix}_${crypto.randomUUID()}`;
+const documentNamePattern: Record<string, RegExp> = {
+  contract: /^contract(-v\d+)?\.pdf$/i,
+  invoice: /^invoice(-v\d+)?\.pdf$/i,
+};
+const documentNameExample: Record<string, string> = {
+  contract: 'contract.pdf',
+  invoice: 'invoice-v1.pdf',
+};
 function org(c: any) {
   const s = c.get('session');
   return s.role === 'client' && s.organizations.length === 1
@@ -237,33 +244,32 @@ export function mountCases(app: Hono<AppEnv>) {
     const form = await c.req.formData();
     const file = form.get('file'),
       kind = form.get('kind');
-    if (
-      !(file instanceof File) ||
-      typeof kind !== 'string' ||
-      file.size > 10485760
-    )
-      return c.json({ error: 'Invalid file' }, 400);
+    if (!(file instanceof File) || typeof kind !== 'string')
+      return c.json({ error: 'A file and a document kind are required' }, 400);
+    const pattern = documentNamePattern[kind];
+    if (!pattern)
+      return c.json({ error: `Unsupported document kind "${kind}"` }, 400);
+    if (file.size > 10485760)
+      return c.json({ error: 'File exceeds the 10 MB size limit' }, 400);
+    if (file.type !== 'application/pdf')
+      return c.json(
+        {
+          error: `Expected a PDF file, but received "${file.type || 'an unknown type'}"`,
+        },
+        400,
+      );
+    if (!pattern.test(file.name))
+      return c.json(
+        {
+          error: `File name "${file.name}" does not match the expected naming for ${kind} documents (e.g. "${documentNameExample[kind]}")`,
+        },
+        400,
+      );
     const bytes = await file.arrayBuffer();
     const hash = Array.from(
       new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
       (x) => x.toString(16).padStart(2, '0'),
     ).join('');
-    const policy = (
-      fixturePolicy as Record<
-        string,
-        { sha256: string; mediaType: string; kind: string }
-      >
-    )[file.name];
-    if (
-      !policy ||
-      policy.sha256 !== hash ||
-      policy.mediaType !== file.type ||
-      policy.kind !== kind
-    )
-      return c.json(
-        { error: 'Only supplied synthetic fixtures are accepted' },
-        400,
-      );
     const total: any = await c.env.DB.prepare(
       'SELECT COUNT(*) count FROM document_versions WHERE case_id=?',
     )

@@ -125,6 +125,47 @@ test('simulated analysis is idempotent and a late v1 job uses current v2 compari
     sql.close();
   }
 });
+test('simulated analysis completes with case-declared fallback values for unrecognized PDF content', async () => {
+  const { sql, DB } = setup();
+  try {
+    sql
+      .prepare(
+        "UPDATE document_versions SET sha256='0000000000000000000000000000000000000000000000000000000000000000' WHERE id='invoice-v2'",
+      )
+      .run();
+    sql
+      .prepare(
+        "INSERT INTO analysis_jobs VALUES ('j2','c','invoice-v2','bank-demo','org-northstar','queued',0,NULL,'manager','2026','2026')",
+      )
+      .run();
+    await processAnalysis(
+      { DB },
+      {
+        jobId: 'j2',
+        caseId: 'c',
+        versionId: 'invoice-v2',
+        bankId: 'bank-demo',
+        organizationId: 'org-northstar',
+      },
+    );
+    const job: any = sql
+      .prepare("SELECT status,error FROM analysis_jobs WHERE id='j2'")
+      .get();
+    assert.equal(job.status, 'completed');
+    assert.equal(job.error, null);
+    const result: any = sql
+      .prepare("SELECT * FROM analysis_results WHERE job_id='j2'")
+      .get();
+    const fields = JSON.parse(result.extracted_fields);
+    const invoiceField = fields.find((x: any) => x.kind === 'invoice');
+    assert.equal(invoiceField.recognized, false);
+    assert.equal(invoiceField.amountMinor, 1200000);
+    assert.equal(invoiceField.currency, 'EUR');
+    assert.match(result.summary, /No predefined fixture data is available/);
+  } finally {
+    sql.close();
+  }
+});
 test('outbox publication failure is visible and retryable without document content', async () => {
   const { sql, DB } = setup();
   try {

@@ -14,10 +14,15 @@ function setup() {
 
 test('dashboard statistics use assigned organization scope and completed decisions only', async () => {
   const { sql, env } = setup();
+  // An org with no staff_assignments row for anyone, proving the dashboard is
+  // scoped to assigned orgs rather than every org in the bank.
+  sql.exec(
+    "INSERT INTO organizations VALUES ('org-unstaffed','bank-demo','Unstaffed Ltd');",
+  );
   const insert = sql.prepare(`INSERT INTO cases(id,bank_id,organization_id,title,description,currency,amount_minor,status,workflow_status,revision,created_by,created_at,updated_at) VALUES (?,?,?,?,?,'EUR',100,'Draft',?,1,?,?,?)`);
   insert.run('north-open', 'bank-demo', 'org-northstar', 'North open', '', 'AwaitingClient', 'client-northstar', '2026-01-01T00:00:00.000Z', '2026-01-01T01:00:00.000Z');
   insert.run('north-done', 'bank-demo', 'org-northstar', 'North done', '', 'Approved', 'client-northstar', '2026-01-01T00:00:00.000Z', '2026-01-01T03:00:00.000Z');
-  insert.run('cedar', 'bank-demo', 'org-cedar', 'Cedar private', '', 'Rejected', 'client-cedar', '2026-01-01T00:00:00.000Z', '2026-01-01T04:00:00.000Z');
+  insert.run('unstaffed', 'bank-demo', 'org-unstaffed', 'Unstaffed private', '', 'Rejected', 'client-northstar', '2026-01-01T00:00:00.000Z', '2026-01-01T04:00:00.000Z');
   sql.prepare(`INSERT INTO review_decisions VALUES ('decision','north-done','compliance','Approved','approved in test','[]','2026-01-01T02:00:00.000Z')`).run();
   const app = createLocalApp(), origin = 'http://127.0.0.1';
   const headers = { Origin: origin, 'Content-Type': 'application/json', 'X-CSRF-Protection': '1' };

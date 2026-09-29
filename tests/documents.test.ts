@@ -45,7 +45,7 @@ function seededDatabase() {
   return sql;
 }
 
-test('document intake enforces fixture identity, size and case version limits', async () => {
+test('document intake enforces name/kind pairing, type, size and case version limits', async () => {
   const sql = seededDatabase();
   const objects = new Map<string, Uint8Array>();
   const DOCUMENTS = {
@@ -108,14 +108,21 @@ test('document intake enforces fixture identity, size and case version limits', 
       );
     }
 
-    assert.equal(
-      (await upload(new File([fixture], 'renamed.pdf', { type: 'application/pdf' }))).status,
-      400,
-    );
-    assert.equal(
-      (await upload(new File([Buffer.from('unknown')], 'invoice-v1.pdf', { type: 'application/pdf' }))).status,
-      400,
-    );
+    const renamed = await upload(new File([fixture], 'renamed.pdf', { type: 'application/pdf' }));
+    assert.equal(renamed.status, 400);
+    assert.match((await renamed.json()).error, /does not match the expected naming/);
+
+    const wrongKindName = await upload(new File([fixture], 'contract.pdf', { type: 'application/pdf' }));
+    assert.equal(wrongKindName.status, 400);
+    assert.match((await wrongKindName.json()).error, /invoice-v1\.pdf/);
+
+    const wrongType = await upload(new File([fixture], 'invoice-v1.pdf', { type: 'text/plain' }));
+    assert.equal(wrongType.status, 400);
+    assert.match((await wrongType.json()).error, /Expected a PDF file/);
+
+    const wrongKind = await upload(new File([fixture], 'invoice-v1.pdf', { type: 'application/pdf' }), 'letter');
+    assert.equal(wrongKind.status, 400);
+    assert.match((await wrongKind.json()).error, /Unsupported document kind "letter"/);
     assert.equal(
       (
         await upload(
@@ -140,6 +147,87 @@ test('document intake enforces fixture identity, size and case version limits', 
       (sql.prepare('SELECT COUNT(*) count FROM document_versions').get() as any).count,
       10,
     );
+  } finally {
+    sql.close();
+  }
+});
+
+test('document intake accepts any PDF content once the name matches its declared kind', async () => {
+  const sql = seededDatabase();
+  const objects = new Map<string, Uint8Array>();
+  const DOCUMENTS = {
+    async put(key: string, value: ArrayBuffer | Uint8Array) {
+      objects.set(key, new Uint8Array(value));
+    },
+    async get(key: string) {
+      const value = objects.get(key);
+      return value
+        ? { body: new Blob([value.buffer as ArrayBuffer]).stream() }
+        : null;
+    },
+    async delete(key: string) {
+      objects.delete(key);
+    },
+  };
+  const env = { DB: database(sql), DOCUMENTS };
+  const app = createLocalApp();
+  const origin = 'http://127.0.0.1';
+  const mutationHeaders = { Origin: origin, 'X-CSRF-Protection': '1' };
+  try {
+    const login = await app.request(
+      `${origin}/api/local/session`,
+      {
+        method: 'POST',
+        headers: { ...mutationHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId: 'client-northstar' }),
+      },
+      env,
+    );
+    const cookie = login.headers.get('set-cookie')!.split(';')[0]!;
+    const created: any = await (
+      await app.request(
+        `${origin}/api/cases`,
+        {
+          method: 'POST',
+          headers: {
+            ...mutationHeaders,
+            'Content-Type': 'application/json',
+            Cookie: cookie,
+          },
+          body: JSON.stringify({
+            title: 'Arbitrary content case',
+            currency: 'EUR',
+            amountMinor: 500000,
+          }),
+        },
+        env,
+      )
+    ).json();
+    async function upload(file: File, kind: string) {
+      const form = new FormData();
+      form.set('kind', kind);
+      form.set('file', file);
+      return app.request(
+        `${origin}/api/cases/${created.id}/documents`,
+        { method: 'POST', headers: { ...mutationHeaders, Cookie: cookie }, body: form },
+        env,
+      );
+    }
+    const contract = await upload(
+      new File([Buffer.from('a hand-authored contract, not a fixture')], 'contract.pdf', {
+        type: 'application/pdf',
+      }),
+      'contract',
+    );
+    assert.equal(contract.status, 201);
+    const invoice = await upload(
+      new File([Buffer.from('a hand-authored invoice')], 'invoice-v3.pdf', {
+        type: 'application/pdf',
+      }),
+      'invoice',
+    );
+    assert.equal(invoice.status, 201);
+    assert.equal(objects.size, 2);
   } finally {
     sql.close();
   }
