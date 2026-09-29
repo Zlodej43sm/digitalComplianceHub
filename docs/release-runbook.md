@@ -55,15 +55,19 @@ Record the deployment version printed by Wrangler. Apply migrations before code 
 
 ## Reset
 
-Reset always creates and verifies a backup first. The environment name and database confirmation must match exactly:
+The unified reset command returns the hosted demo to the canonical seven-case dataset. It creates and verifies a backup first, clears D1/R2, restores fictional identities, seeds through the hosted API, and runs hosted smoke. The environment name and database confirmation must match exactly:
 
 ```bash
-rtk pnpm reset:cloudflare demo --confirm=dch-demo-metadata
-rtk pnpm exec wrangler d1 execute dch-demo-metadata --remote --config wrangler.demo.generated.json --file seeds/hosted-demo.sql
-rtk pnpm seed:scenarios https://YOUR-DEMO-HOST
+rtk pnpm reset:default demo --confirm=dch-demo-metadata
 ```
 
-Scenario seeding works in the current `demo` mode.
+Use `rtk pnpm reset:default demo --confirm=dch-demo-metadata --dry-run` to validate the command without changing data. The lower-level `reset:cloudflare` command only clears hosted business data and is retained for recovery operations.
+
+For local D1/R2, keep `pnpm dev` running and use:
+
+```bash
+rtk pnpm reset:default local
+```
 
 ## Disposable restore rehearsal
 

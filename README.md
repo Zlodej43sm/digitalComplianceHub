@@ -14,7 +14,7 @@ rtk pnpm dev
 
 Open http://127.0.0.1:5178. Requires Node.js 24 and pnpm 11.4.0.
 
-Clients can create persistent drafts, upload allowlisted synthetic PDF documents, retain immutable versions, download authorized versions, and submit a package. Manager and compliance workflows are implemented. Cedar remains isolated from Northstar, and the demo administrator has no business-data access.
+Clients can create persistent drafts, upload conventionally named PDF documents, retain immutable versions, download authorized versions, and submit a package. Manager and compliance workflows are implemented. Cedar remains isolated from Northstar, and the demo administrator has no business-data access.
 
 Sample fixture files are in `fixtures/documents/`. Uploads currently accept any PDF content as long as the file name matches the expected pattern for the selected kind (e.g. `contract.pdf`, `invoice-v1.pdf`); a mismatched name, non-PDF type, unsupported kind, or oversized file is rejected with a specific reason. Each case is limited to 10 versions and each file to 10 MiB.
 
@@ -34,5 +34,21 @@ rtk pnpm build:cloudflare demo
 Verification covers type checking, identity/policy tests, production compilation and HTTP smoke checks. The built preview now offers the same account picker as development. Apply local setup before exercising its account list.
 
 Follow the [hosted deployment runbook](docs/cloudflare-environments.md) for database seeding, deployment and removing any existing Access policy on the POC hostname. Building the app does not change an edge policy or deploy it.
+
+## Reset canonical demo data
+
+Keep `pnpm dev` running, then reset local D1/R2 and recreate the seven workflow-status cases:
+
+```bash
+rtk pnpm reset:default local
+```
+
+Reset the hosted synthetic demo only with the exact environment confirmation. This takes and verifies a backup before clearing D1/R2, restores fictional identities, seeds the same seven cases, and runs hosted smoke:
+
+```bash
+rtk pnpm reset:default demo --confirm=dch-demo-metadata
+```
+
+Preview either operation without changing data by appending `--dry-run`.
 
 [Phase 2](docs/poc-phases/02-identity-and-cloudflare.md) · [POC plan](docs/cloudflare-poc-plan.md) · [Verification history](docs/phase-2-verification.md).

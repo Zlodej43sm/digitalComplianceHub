@@ -75,13 +75,13 @@ The same Worker serves the SPA and API. Local development uses Cloudflare's Vite
 
 ### Fictional accounts
 
-| Role               | Local ID           | Hosted ID               | Scope                     |
-| ------------------ | ------------------ | ----------------------- | ------------------------- |
-| Northstar client   | `client-northstar` | `demo-client-northstar` | `org-northstar`           |
-| Cedar client       | `client-cedar`     | `demo-client-cedar`     | `org-cedar`               |
+| Role               | Local ID           | Hosted ID               | Scope                                    |
+| ------------------ | ------------------ | ----------------------- | ---------------------------------------- |
+| Northstar client   | `client-northstar` | `demo-client-northstar` | `org-northstar`                          |
+| Cedar client       | `client-cedar`     | `demo-client-cedar`     | `org-cedar`                              |
 | Manager            | `manager`          | `demo-manager`          | assigned to Northstar (local also Cedar) |
 | Compliance         | `compliance`       | `demo-compliance`       | assigned to Northstar (local also Cedar) |
-| Demo administrator | `admin`            | `demo-admin`            | administration shell only |
+| Demo administrator | `admin`            | `demo-admin`            | administration shell only                |
 
 Authorization rules:
 
@@ -412,6 +412,18 @@ rtk pnpm restore:cloudflare dev backups/demo-TIMESTAMP --confirm=dch-dev-metadat
 rtk pnpm reset:cloudflare demo --confirm=dch-demo-metadata
 ```
 
+Return local or hosted data to the canonical seven-case dataset:
+
+```bash
+# Keep pnpm dev running for local API seeding.
+rtk pnpm reset:default local
+
+# Takes a verified backup, resets D1/R2, seeds, then runs hosted smoke.
+rtk pnpm reset:default demo --confirm=dch-demo-metadata
+```
+
+Append `--dry-run` to validate either reset command without changing data. The unified command performs an API preflight before deleting anything. The hosted mode requires the exact database confirmation token.
+
 `reset:cloudflare` is destructive but takes and verifies a backup first. Restore is intentionally blocked for the demo environment and accepts only a separately configured empty disposable environment.
 
 All repository shell commands must be prefixed with `rtk` according to the workspace instructions.
@@ -424,7 +436,7 @@ The current test suite covers:
 - session creation, expiry, revocation, Secure cookies, origin and CSRF checks;
 - membership constraints, staff assignments, role restrictions and tenant isolation;
 - case creation, durable persistence, submission guards and conflicting revisions;
-- exact document fixture policy, 10 MiB limit, 10-version limit and staged-object cleanup;
+- document name/kind and PDF media-type policy, 10 MiB limit, 10-version limit and staged-object cleanup;
 - correction workflow, internal-message privacy, checklists, assignments, final snapshots and conflicting decisions;
 - analysis idempotency, publication failure, retry, stale-version results and role boundaries;
 - dashboard status counts, turnaround rules and organization scope;
@@ -438,7 +450,7 @@ Run `rtk pnpm release:check` before deployment. After deployment, run the hosted
 ## 16. Important known limitations
 
 - Public fictional account selection is not real authentication.
-- Synthetic allowlisted PDFs only; arbitrary uploads are intentionally unsupported.
+- PDF uploads are accepted by name/kind convention without malware scanning or content validation; real or sensitive documents remain prohibited.
 - Deterministic fixture analysis only; no OCR, LLM, malware scanner, or model evaluation.
 - No sanctions, AML, KYC, FX, legal, or regulatory decision engine.
 - No bank core, treasury, CRM, DMS, email, SMS, or customer onboarding integration.

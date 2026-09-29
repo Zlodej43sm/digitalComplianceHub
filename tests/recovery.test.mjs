@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { requireEnvironment, validateManifest } from '../scripts/recovery-lib.mjs';
+import {
+  requireEnvironment,
+  validateManifest,
+} from '../scripts/recovery-lib.mjs';
+import { parseResetDefaultArgs } from '../scripts/reset-default.mjs';
 
 test('recovery commands reject unknown environments and production restore', () => {
   assert.equal(requireEnvironment('demo'), 'demo');
@@ -9,8 +13,38 @@ test('recovery commands reject unknown environments and production restore', () 
 });
 test('backup manifests require checksums, sizes and explicit environment metadata', () => {
   const hash = 'a'.repeat(64);
-  const valid = { format: 1, environment: 'demo', database: { file: 'database.sql', sha256: hash }, objects: [{ key: 'private/key', file: 'objects/1.bin', sha256: hash, size: 12 }] };
+  const valid = {
+    format: 1,
+    environment: 'demo',
+    database: { file: 'database.sql', sha256: hash },
+    objects: [
+      { key: 'private/key', file: 'objects/1.bin', sha256: hash, size: 12 },
+    ],
+  };
   assert.equal(validateManifest(valid), valid);
-  assert.throws(() => validateManifest({ ...valid, environment: 'production' }));
-  assert.throws(() => validateManifest({ ...valid, objects: [{ ...valid.objects[0], sha256: 'bad' }] }));
+  assert.throws(() =>
+    validateManifest({ ...valid, environment: 'production' }),
+  );
+  assert.throws(() =>
+    validateManifest({
+      ...valid,
+      objects: [{ ...valid.objects[0], sha256: 'bad' }],
+    }),
+  );
+});
+test('default reset distinguishes safe local mode from confirmed demo mode', () => {
+  assert.deepEqual(parseResetDefaultArgs(['local']), { environment: 'local' });
+  assert.deepEqual(
+    parseResetDefaultArgs(['demo', '--confirm=dch-demo-metadata', '--dry-run']),
+    {
+      environment: 'demo',
+      confirm: 'dch-demo-metadata',
+      dryRun: true,
+    },
+  );
+  assert.throws(() => parseResetDefaultArgs(['demo']));
+  assert.throws(() =>
+    parseResetDefaultArgs(['local', '--origin=https://dch.cooptinyteam.org']),
+  );
+  assert.throws(() => parseResetDefaultArgs(['production']));
 });

@@ -24,6 +24,7 @@
     "backup:cloudflare": "node scripts/cloudflare-backup.mjs",
     "restore:cloudflare": "node scripts/cloudflare-restore.mjs",
     "reset:cloudflare": "node scripts/cloudflare-reset.mjs",
+    "reset:default": "node scripts/reset-default.mjs",
     "smoke:hosted": "node scripts/hosted-smoke.mjs",
     "release:check": "pnpm verify && node scripts/release-check.mjs"
   },
